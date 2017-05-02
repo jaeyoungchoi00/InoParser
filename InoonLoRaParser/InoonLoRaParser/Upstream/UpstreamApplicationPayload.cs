@@ -302,7 +302,6 @@ namespace InoonLoRaParser.Upstream
             int index = 0;
             String noticeType;
             String subStr;
-            String noticePayload; 
             int len = 2;
 
             sb.Append("Notice");
@@ -529,7 +528,6 @@ namespace InoonLoRaParser.Upstream
             int index = 0;
             String dataLogPayload;
             String subStr;
-            String noticePayload;
             int len = 2;
 
             sb.Append("Data Log");
