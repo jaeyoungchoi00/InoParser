@@ -378,7 +378,7 @@ namespace InoonLoRaParser.Upstream
                     notiString = "Unknown notice";
                     break;
             }
-
+            sb.Append(notiString);
             sb.AppendLine();
             index += len;
 
