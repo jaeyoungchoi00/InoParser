@@ -90,6 +90,7 @@ namespace InoonLoRaParser.Upstream
                 len = 2;
                 subStr = payload.Substring(index, len);
                 int rssi = Convert.ToInt16(subStr, 16);
+                rssi = convertSignedByteToInt(rssi);
                 sb.AppendFormat("RSSI: {0} ", rssi);
                 sb.AppendLine();
                 index += len;
@@ -304,7 +305,9 @@ namespace InoonLoRaParser.Upstream
                 len = 2;
                 subStr = payload.Substring(index, len);
                 int rssi = Convert.ToInt16(subStr, 16);
+                rssi = convertSignedByteToInt(rssi);
                 sb.AppendFormat("RSSI: {0} ", rssi);
+
                 sb.AppendLine();
                 index += len;
                 
@@ -317,6 +320,18 @@ namespace InoonLoRaParser.Upstream
             }
 
             return sb.ToString(); 
+        }
+
+        private int convertSignedByteToInt(int rssi)
+        {
+            int result = 0; 
+            if (rssi > 127)
+                result = (256 - rssi) * (-1); 
+            else
+                result = rssi;
+
+            return result;
+
         }
 
         public string parseEvent(string payload, int version)
@@ -486,6 +501,7 @@ namespace InoonLoRaParser.Upstream
             len = 2;
             subStr = payload.Substring(index, len);
             int rssi = Convert.ToInt16(subStr, 16);
+            rssi = convertSignedByteToInt(rssi);
             sb.AppendFormat("RSSI: {0} ", rssi);
             sb.AppendLine();
             index += len;
@@ -544,6 +560,7 @@ namespace InoonLoRaParser.Upstream
             len = 2;
             subStr = payload.Substring(index, len);
             int rssi = Convert.ToInt16(subStr, 16);
+            rssi = convertSignedByteToInt(rssi);
             sb.AppendFormat("RSSI: {0} ", rssi);
             sb.AppendLine();
             index += len;
@@ -599,6 +616,7 @@ namespace InoonLoRaParser.Upstream
             len = 2;
             subStr = payload.Substring(index, len);
             int rssi = Convert.ToInt16(subStr, 16);
+            rssi = convertSignedByteToInt(rssi);
             sb.AppendFormat("RSSI: {0} ", rssi);
             sb.AppendLine();
             index += len;
@@ -698,6 +716,7 @@ namespace InoonLoRaParser.Upstream
             len = 2;
             subStr = payload.Substring(index, len);
             int rssi = Convert.ToInt16(subStr, 16);
+            rssi = convertSignedByteToInt(rssi);
             sb.AppendFormat("RSSI: {0} ", rssi);
             sb.AppendLine();
             index += len;

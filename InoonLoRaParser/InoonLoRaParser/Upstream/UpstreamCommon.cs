@@ -66,7 +66,7 @@ namespace InoonLoRaParser.Upstream
             // Version 
             len = 2;
             subStr = inputStr.Substring(index, len);
-            setVersionNumber(subStr); 
+            setVersionNumber(subStr); // Need to distinguish version 1 and version 2 
             sb.AppendFormat ("Version: {0}", subStr);
             sb.AppendLine();
             index += len;
