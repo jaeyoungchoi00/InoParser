@@ -10,24 +10,28 @@ namespace InoonLoRaParser.Upstream
     {
 
         private const Double accScale = 3.91; //mg for 2G range. 7.81 for 4G range   
+        private const int aliveLengthVer1 = 14;
+        private const int aliveLengthVer2 = 50;
+        private const int eventLengthVer1 = 6;
+        private const int eventLengthVer2 = 10;
 
         //parse application payload 
-        public string parseApplicationPayload(UpstreamCommon.UpPacketType pktType, string pktStr)
+        public string parseApplicationPayload(UpstreamCommon.UpPacketType pktType, string pktStr, int version)
         {
             string res = String.Empty;
 
             if (pktType == UpstreamCommon.UpPacketType.Alive)
-                res = parseAlive(pktStr);
+                res = parseAlive(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.Event)
-                res = parseEvent(pktStr);
+                res = parseEvent(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.Error)
-                res = parseError(pktStr);
+                res = parseError(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.Ack)
-                res = parseAck(pktStr);
+                res = parseAck(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.Notice)
-                res = parseNotice(pktStr);
+                res = parseNotice(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.DataLog)
-                res = parseDataLog(pktStr);
+                res = parseDataLog(pktStr, version);
             else
                 res = "Unknown packet";
 
@@ -35,12 +39,13 @@ namespace InoonLoRaParser.Upstream
             return res; 
         }
 
-        public string parseAlive(string payload)
+        public string parseAlive(string payload, int version)
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;
             String subStr;
             int len = 2;
+            int strLen = 0; 
 
             sb.Append("Alive");
             sb.AppendLine();
@@ -48,129 +53,434 @@ namespace InoonLoRaParser.Upstream
             // Trim whitespace
             payload = payload.Trim();
 
-            // X axis 
-            len = 4;   
-            subStr = payload.Substring(index, len);
-            int xaxis = Convert.ToInt16(subStr, 16);
-            Double xconv = accScale * (Double)xaxis;  
-            sb.AppendFormat("X axis: {0:N1} mg", xconv);
-            sb.AppendLine();
-            index += len;
+            strLen = payload.Length;
+
+            if ((1 == version) && (aliveLengthVer1 == strLen))
+            {
+
+                // X axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int xaxis = Convert.ToInt16(subStr, 16);
+                Double xconv = accScale * (Double)xaxis;
+                sb.AppendFormat("X axis: {0:N1} mg", xconv);
+                sb.AppendLine();
+                index += len;
 
 
-            // Y axis 
-            len = 4;
-            subStr = payload.Substring(index, len);
-            int yaxis = Convert.ToInt16(subStr, 16);
-            Double yconv = accScale * (Double)yaxis;
-            sb.AppendFormat("Y axis: {0:N1} mg", yconv);
-            sb.AppendLine();
-            index += len;
+                // Y axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int yaxis = Convert.ToInt16(subStr, 16);
+                Double yconv = accScale * (Double)yaxis;
+                sb.AppendFormat("Y axis: {0:N1} mg", yconv);
+                sb.AppendLine();
+                index += len;
 
-            // Z axis 
-            len = 4;
-            subStr = payload.Substring(index, len);
-            int zaxis = Convert.ToInt16(subStr, 16);
-            Double zconv = accScale * (Double)zaxis;
-            sb.AppendFormat("Z axis: {0:N1} mg", zconv);
-            sb.AppendLine();
-            index += len;
+                // Z axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int zaxis = Convert.ToInt16(subStr, 16);
+                Double zconv = accScale * (Double)zaxis;
+                sb.AppendFormat("Z axis: {0:N1} mg", zconv);
+                sb.AppendLine();
+                index += len;
 
-            // RSSI
-            len = 2;
-            subStr = payload.Substring(index, len);
-            int rssi = Convert.ToInt16(subStr, 16);
-            sb.AppendFormat("RSSI: {0} ", rssi);
-            sb.AppendLine();
-            index += len;
+                // RSSI
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int rssi = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("RSSI: {0} ", rssi);
+                sb.AppendLine();
+                index += len;
+
+            }            
+            else if ((2 == version) && (aliveLengthVer2 == strLen))// version 2 
+                {
+                // X axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int xaxis = Convert.ToInt16(subStr, 16);
+                Double xconv = accScale * (Double)xaxis;
+                sb.AppendFormat("X axis: {0:N1} mg", xconv);
+                sb.AppendLine();
+                index += len;
+
+
+                // Y axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int yaxis = Convert.ToInt16(subStr, 16);
+                Double yconv = accScale * (Double)yaxis;
+                sb.AppendFormat("Y axis: {0:N1} mg", yconv);
+                sb.AppendLine();
+                index += len;
+
+                // Z axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int zaxis = Convert.ToInt16(subStr, 16);
+                Double zconv = accScale * (Double)zaxis;
+                sb.AppendFormat("Z axis: {0:N1} mg", zconv);
+                sb.AppendLine();
+                index += len;
+
+
+                // Alive Period  (min) 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int alivePeriod = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Alive period: {0} min", alivePeriod);
+                sb.AppendLine();
+                index += len;
+
+                
+                // Acc Config -- Sensitivity level 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int sensitivityLevel = Convert.ToInt16(subStr, 16);
+                int sensitivityGrav = 1; 
+                for (int i = 0; i < sensitivityLevel; i++)
+                {
+                    sensitivityGrav *= 2; 
+                }
+                sb.AppendFormat("Sensitivity: {0} G ", sensitivityGrav.ToString());
+                sb.AppendLine();
+                index += len;
+
+                // Acc Config -- Sensitivity Threshlod 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int sensitivityThesh = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Sensitivity Threshlod : {0} mg", sensitivityThesh.ToString());
+                sb.AppendLine();
+                index += len;
+
+                // Acc Interrupt 
+                
+                // Acc Interrupt No 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int accIntrNum = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Acc Interrupt No: {0} ", accIntrNum);
+                sb.AppendLine();
+                index += len;
+
+                // Skip reserved field 
+                len = 2;
+                index += len;
+
+                // Acc Interrupt :  Data field 
+                len = 2;
+                sb.Append("Acc Interrupt enabled axis : ");
+                subStr = payload.Substring(index, len);
+
+                SByte accByte = Convert.ToSByte(subStr);
+
+                string bitFlag = Convert.ToString(accByte, 2).PadLeft(8, '0'); // 00010001
+
+                var chars = bitFlag.ToCharArray();
+                
+                if (chars[5].Equals('1'))
+                    sb.Append("X");
+
+                if (chars[6].Equals('1'))
+                    sb.Append("Y");
+
+                if (chars[7].Equals('1'))
+                    sb.Append("Z");
+
+                sb.AppendLine();
+                index += len;
+
+
+                // Data log enable 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int logEnable = Convert.ToInt16(subStr, 16);
+                
+                if (logEnable == 0)
+                {
+                    sb.Append("Acc Data Log Disabled. ");
+                }
+                else
+                {
+                    sb.Append("Acc Data Log Enabled. ");
+                }
+                                
+                sb.AppendLine();
+                index += len;
+
+                // Data log Interval  
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int logInterval = Convert.ToInt16(subStr, 16);
+                logInterval = 10 * logInterval; // predefined spec. 
+                sb.AppendFormat("Acc Interval : {0} ms ", logInterval.ToString());
+
+                sb.AppendLine();
+                index += len;
+
+                // Data log :  No of Biocks 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int numBlocks = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Acc Blocks : {0} ", numBlocks.ToString());
+
+                sb.AppendLine();
+                index += len;
+
+                // Setup message : installed or not 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int installStatus = Convert.ToInt16(subStr, 16);
+
+                if (installStatus == 0)
+                {
+                    sb.Append("Uninstalled ");
+                }
+                else
+                {
+                    sb.Append("Installed ");
+                }
+
+                sb.AppendLine();
+                index += len;
+
+
+                // FW Version 
+                // Major 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int fwMajor = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("FW version: {0} ", fwMajor.ToString("00"));
+                //sb.AppendLine();
+                index += len;
+
+                // Minor 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int fwMinor = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat(" {0} ", fwMinor.ToString("00"));
+                //sb.AppendLine();
+                index += len;
+
+                // Revision 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int fwRev = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat(" {0} ", fwRev.ToString("00"));
+                sb.AppendLine();
+                index += len;
+
+
+                // LoRa module FW Version (SoluM)
+                // Major 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                fwMajor = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("LoRa Module FW version: {0} ", fwMajor.ToString("00"));
+                //sb.AppendLine();
+                index += len;
+
+                // Minor 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                fwMinor = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat(" {0} ", fwMinor.ToString("00"));
+                //sb.AppendLine();
+                index += len;
+
+                // Revision 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                fwRev = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat(" {0} ", fwRev.ToString("00"));
+                sb.AppendLine();
+                index += len;
+
+
+                // RSSI
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int rssi = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("RSSI: {0} ", rssi);
+                sb.AppendLine();
+                index += len;
+                
+
+            }
+            else
+            {
+                sb.Append("Invalid Alive Message Format");
+                sb.AppendLine();
+            }
 
             return sb.ToString(); 
         }
 
-        public string parseEvent(string payload)
+        public string parseEvent(string payload, int version)
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;
             String eventType; 
             String subStr;
             int len = 2;
-
+            
             sb.Append("Event");
             sb.AppendLine();
 
             // Trim whitespace
             payload = payload.Trim();
 
-            // Event type 
-            len = 2;
-            eventType = payload.Substring(index, len);
-            string eventString;
-            switch (eventType)
+            // Check packet validity 
+            int strLen = payload.Length;
+
+            if ((1 == version) && (eventLengthVer1 == strLen))
             {
-                case "01":
-                    eventString = "High-G";
-                    break;
-                case "02":
-                    eventString = "Tap";
-                    break;
-                case "03":
-                    eventString = "Double tap";
-                    break;
-                case "04":
-                    eventString = "Orient";
-                    break;
-                case "05":
-                    eventString = "Flip";
-                    break;
-                case "06":
-                    eventString = "Flat";
-                    break;
-                case "07":
-                    eventString = "Low-G";
-                    break;
-                case "08":
-                    eventString = "Collapse"; //jychoi 
-                    break;
-                default:
-                    eventString = "Unknown event";
-                    break;
+                // Event type 
+                len = 2;
+                eventType = payload.Substring(index, len);
+                string eventString;
+                switch (eventType)
+                {
+                    case "01":
+                        eventString = "High-G";
+                        break;
+                    case "02":
+                        eventString = "Tap";
+                        break;
+                    case "03":
+                        eventString = "Double tap";
+                        break;
+                    case "04":
+                        eventString = "Orient";
+                        break;
+                    case "05":
+                        eventString = "Flip";
+                        break;
+                    case "06":
+                        eventString = "Flat";
+                        break;
+                    case "07":
+                        eventString = "Low-G";
+                        break;
+                    case "08":
+                        eventString = "Collapse"; //jychoi 
+                        break;
+                    default:
+                        eventString = "Unknown event";
+                        break;
+                }
+
+
+                sb.Append(eventString);
+                sb.AppendLine();
+                index += len;
+
+                // X Y Z bit 
+                len = 2;
+                subStr = payload.Substring(index, len);
+
+                SByte accByte = Convert.ToSByte(subStr);
+
+
+                string bitFlag = Convert.ToString(accByte, 2).PadLeft(8, '0'); // 00010001
+
+                var chars = bitFlag.ToCharArray();
+
+                if (chars[4].Equals('1'))
+                    sb.Append("-");
+                else
+                    sb.Append("+");
+
+                if (chars[5].Equals('1'))
+                    sb.Append("X");
+
+                if (chars[6].Equals('1'))
+                    sb.Append("Y");
+
+                if (chars[7].Equals('1'))
+                    sb.Append("Z");
+
+                sb.AppendLine();
+                index += len;
+
             }
+            else if ((2 == version) && (eventLengthVer2 == strLen))
+            {
+                // Event type 
+                len = 2;
+                eventType = payload.Substring(index, len);
+                string eventString;
+                switch (eventType)
+                {
+                    case "01":
+                        eventString = "High-G";
+                        break;
+                    case "02":
+                        eventString = "Tap";
+                        break;
+                    case "03":
+                        eventString = "Double tap";
+                        break;
+                    case "04":
+                        eventString = "Orient";
+                        break;
+                    case "05":
+                        eventString = "Flip";
+                        break;
+                    case "06":
+                        eventString = "Flat";
+                        break;
+                    case "07":
+                        eventString = "Low-G";
+                        break;
+                    case "08":
+                        eventString = "Collapse"; //jychoi 
+                        break;
+                    default:
+                        eventString = "Unknown event";
+                        break;
+                }
 
 
-            sb.Append(eventString); 
-            sb.AppendLine();
-            index += len;
+                sb.Append(eventString);
+                sb.AppendLine();
+                index += len;
+
+                // X axis 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int xnum = Convert.ToInt16(subStr, 16);                
+                sb.AppendFormat("Number of X axis interrupts: {0} ", xnum.ToString());
+                sb.AppendLine();
+                index += len;
 
 
+                // Y axis 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int ynum = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Number of Y axis interrupts: {0} ", ynum.ToString());
+                sb.AppendLine();
+                index += len;
 
-            // X Y Z bit 
-            
-            len = 2;
-            subStr = payload.Substring(index, len);
-            
-            SByte accByte = Convert.ToSByte(subStr);
+                // Z axis 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int znum = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Number of Z axis interrupts: {0} ", znum.ToString());
+                sb.AppendLine();
+                index += len;
 
 
-            string bitFlag = Convert.ToString(accByte, 2).PadLeft(8, '0'); // 00010001
-
-            var chars = bitFlag.ToCharArray();
-
-            if (chars[4].Equals('1'))
-                sb.Append("-");
+            }
             else
-                sb.Append("+");
-
-            if (chars[5].Equals('1'))
-                sb.Append("X");
-
-            if (chars[6].Equals('1'))
-                sb.Append("Y");
-
-            if (chars[7].Equals('1'))
-                sb.Append("Z");
-
-            sb.AppendLine();
-            index += len;
+            {
+                sb.Append("Invalid Event Message Format");
+                sb.AppendLine();
+            }
 
             // RSSI
             len = 2;
@@ -183,7 +493,7 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString();
         }
         
-        public string parseError(string payload)
+        public string parseError(string payload, int version)
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;
@@ -241,7 +551,7 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString();
         }
                 
-        public string parseAck(string payload)
+        public string parseAck(string payload, int version)
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;
@@ -296,7 +606,7 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString();
         }
 
-        public string parseNotice(string payload)
+        public string parseNotice(string payload, int version)
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;
@@ -522,7 +832,7 @@ namespace InoonLoRaParser.Upstream
         }
 
 
-        public string parseDataLog(string payload)
+        public string parseDataLog(string payload, int version)
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;

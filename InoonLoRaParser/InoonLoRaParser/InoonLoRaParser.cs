@@ -34,7 +34,7 @@ namespace InoonLoRaParser
             // parse application payload 
             String payloadStr = upInputStr.Substring(16);
             UpstreamApplicationPayload uap = new UpstreamApplicationPayload(); 
-            tbUpstreamApplicationPayload.Text = uap.parseApplicationPayload(uc.upPacketType, payloadStr); 
+            tbUpstreamApplicationPayload.Text = uap.parseApplicationPayload(uc.upPacketType, payloadStr, uc.versionNumber); 
         }
     }
 }

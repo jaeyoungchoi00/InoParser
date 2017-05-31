@@ -8,8 +8,8 @@ namespace InoonLoRaParser.Upstream
 {
     public class UpstreamCommon
     {
-        public String version; // default 1 
-        public String packetID; // random number 
+        //public String version; // default 1 
+        public int versionNumber; // default 1 
 
         public enum DeviceType { Unknown = 0, ParkingPlex = 1, InoVibe = 2 };
         public DeviceType devType; // 
@@ -40,6 +40,14 @@ namespace InoonLoRaParser.Upstream
         public int temperature; // -30 ~ 80  
 
  
+
+        private void setVersionNumber(String verStr)
+        {
+            this.versionNumber = 1;
+            bool result = Int32.TryParse(verStr, out this.versionNumber); // it's simple program 
+            return; 
+        }
+
         /// <summary>
         /// Tab separated result 
         /// </summary>
@@ -56,8 +64,10 @@ namespace InoonLoRaParser.Upstream
             inputStr = inputStr.Trim();
 
             // Version 
-            len = 2; 
-            sb.AppendFormat ("Version: {0}", inputStr.Substring(index, len));
+            len = 2;
+            subStr = inputStr.Substring(index, len);
+            setVersionNumber(subStr); 
+            sb.AppendFormat ("Version: {0}", subStr);
             sb.AppendLine();
             index += len;
 

@@ -87,7 +87,7 @@
             this.gbContents.Controls.Add(this.tbUpstreamCommon);
             this.gbContents.Location = new System.Drawing.Point(13, 83);
             this.gbContents.Name = "gbContents";
-            this.gbContents.Size = new System.Drawing.Size(271, 304);
+            this.gbContents.Size = new System.Drawing.Size(271, 400);
             this.gbContents.TabIndex = 1;
             this.gbContents.TabStop = false;
             this.gbContents.Text = "Contents";
@@ -107,7 +107,7 @@
             this.tbUpstreamApplicationPayload.Multiline = true;
             this.tbUpstreamApplicationPayload.Name = "tbUpstreamApplicationPayload";
             this.tbUpstreamApplicationPayload.ReadOnly = true;
-            this.tbUpstreamApplicationPayload.Size = new System.Drawing.Size(250, 110);
+            this.tbUpstreamApplicationPayload.Size = new System.Drawing.Size(250, 205);
             this.tbUpstreamApplicationPayload.TabIndex = 5;
             // 
             // lbCommon
@@ -132,7 +132,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(297, 396);
+            this.ClientSize = new System.Drawing.Size(297, 496);
             this.Controls.Add(this.gbContents);
             this.Controls.Add(this.gbUpstream);
             this.Name = "InoonLoRaParser";
