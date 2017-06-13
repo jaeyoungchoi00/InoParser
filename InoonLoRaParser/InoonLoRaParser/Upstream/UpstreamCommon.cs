@@ -63,6 +63,9 @@ namespace InoonLoRaParser.Upstream
             // Trim whitespace
             inputStr = inputStr.Trim();
 
+            if (inputStr.Length < 15)
+                return String.Empty; 
+
             // Version 
             len = 2;
             subStr = inputStr.Substring(index, len);

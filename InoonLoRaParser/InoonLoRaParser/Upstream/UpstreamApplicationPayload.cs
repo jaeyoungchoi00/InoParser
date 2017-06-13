@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace InoonLoRaParser.Upstream
 {
@@ -176,7 +177,8 @@ namespace InoonLoRaParser.Upstream
                 sb.Append("Acc Interrupt enabled axis : ");
                 subStr = payload.Substring(index, len);
 
-                SByte accByte = Convert.ToSByte(subStr);
+                //SByte accByte = Convert.ToSByte(subStr);
+                Byte accByte = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
 
                 string bitFlag = Convert.ToString(accByte, 2).PadLeft(8, '0'); // 00010001
 
@@ -351,6 +353,7 @@ namespace InoonLoRaParser.Upstream
             // Check packet validity 
             int strLen = payload.Length;
 
+            // Version 1 
             if ((1 == version) && (eventLengthVer1 == strLen))
             {
                 // Event type 
@@ -410,18 +413,19 @@ namespace InoonLoRaParser.Upstream
                     sb.Append("+");
 
                 if (chars[5].Equals('1'))
-                    sb.Append("X");
+                    sb.Append("Z");
 
                 if (chars[6].Equals('1'))
                     sb.Append("Y");
 
                 if (chars[7].Equals('1'))
-                    sb.Append("Z");
+                    sb.Append("X");
 
                 sb.AppendLine();
                 index += len;
 
             }
+            // Version 2 
             else if ((2 == version) && (eventLengthVer2 == strLen))
             {
                 // Event type 
@@ -735,29 +739,38 @@ namespace InoonLoRaParser.Upstream
 
             len = 2;
             subStr = payload.Substring(index, len);
+            try
+            {
+                //SByte powerUpByte = Convert.ToSByte(subStr);
+                Byte powerUpByte = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
 
-            SByte powerUpByte = Convert.ToSByte(subStr);
+
+                string bitFlag = Convert.ToString(powerUpByte, 2).PadLeft(8, '0'); // 00010001
+
+                var chars = bitFlag.ToCharArray();
+
+                if (chars[4].Equals('1'))
+                    sb.Append("CPU lock-up Reset. ");
+
+                if (chars[5].Equals('1'))
+                    sb.Append("Software Reset. ");
+
+                if (chars[6].Equals('1'))
+                    sb.Append("Watchdog Reset. ");
+
+                if (chars[7].Equals('1'))
+                    sb.Append("Reset Pin. ");
+
+                if (subStr.Equals("00"))
+                    sb.Append("전원 꺼진 상태에서 전원이 인가됨. ");
+
+            }
+            catch(FormatException)
+            {
+                sb.Append("Invalid Reset Notice.");
+            }
 
 
-            string bitFlag = Convert.ToString(powerUpByte, 2).PadLeft(8, '0'); // 00010001
-
-            var chars = bitFlag.ToCharArray();
-
-            if (chars[4].Equals('1'))
-                sb.Append("CPU lock-up Reset");          
-
-            if (chars[5].Equals('1'))
-                sb.Append("Software Reset");
-
-            if (chars[6].Equals('1'))
-                sb.Append("Watchdog Reset");
-
-            if (chars[7].Equals('1'))
-                sb.Append("Reset Pin");
-
-            if (subStr.Equals("00"))
-                sb.Append("전원 꺼진 상태에서 전원이 인가됨");
-       
             sb.AppendLine();
             index += len;
 

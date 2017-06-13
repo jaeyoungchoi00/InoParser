@@ -28,13 +28,19 @@ namespace InoonLoRaParser
             //parse common 
             UpstreamCommon uc = new UpstreamCommon();
             String parsedResult = uc.parseUpstreamCommon(upInputStr);
-
-            tbUpstreamCommon.Text = parsedResult;
-
+            
             // parse application payload 
-            String payloadStr = upInputStr.Substring(16);
-            UpstreamApplicationPayload uap = new UpstreamApplicationPayload(); 
-            tbUpstreamApplicationPayload.Text = uap.parseApplicationPayload(uc.upPacketType, payloadStr, uc.versionNumber); 
+            if (false == String.IsNullOrEmpty(parsedResult))
+            {
+                tbUpstreamCommon.Text = parsedResult;
+                String payloadStr = upInputStr.Substring(16);
+                UpstreamApplicationPayload uap = new UpstreamApplicationPayload();
+                tbUpstreamApplicationPayload.Text = uap.parseApplicationPayload(uc.upPacketType, payloadStr, uc.versionNumber);
+            }
+            else
+            {
+                tbUpstreamCommon.Text = "Invalid input";
+            }            
         }
     }
 }
