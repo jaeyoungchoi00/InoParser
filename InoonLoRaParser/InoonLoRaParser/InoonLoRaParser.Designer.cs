@@ -68,6 +68,7 @@
             this.tbUpstreamInput.Name = "tbUpstreamInput";
             this.tbUpstreamInput.Size = new System.Drawing.Size(171, 21);
             this.tbUpstreamInput.TabIndex = 0;
+            this.tbUpstreamInput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tbUpstreamInput_KeyUp);
             // 
             // btnUpstreamConvert
             // 

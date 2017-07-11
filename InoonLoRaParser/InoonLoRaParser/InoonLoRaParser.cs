@@ -42,5 +42,12 @@ namespace InoonLoRaParser
                 tbUpstreamCommon.Text = "Invalid input";
             }            
         }
+
+        private void tbUpstreamInput_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+                btnUpstreamConvert_Click(sender, e);
+            
+        }
     }
 }
