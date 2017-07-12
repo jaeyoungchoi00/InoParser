@@ -37,8 +37,13 @@
             this.tbUpstreamApplicationPayload = new System.Windows.Forms.TextBox();
             this.lbCommon = new System.Windows.Forms.Label();
             this.tbUpstreamCommon = new System.Windows.Forms.TextBox();
+            this.gbAliveXYZ = new System.Windows.Forms.GroupBox();
+            this.tbSensorData = new System.Windows.Forms.TextBox();
+            this.btnOpenAliveMsgFile = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             this.gbUpstream.SuspendLayout();
             this.gbContents.SuspendLayout();
+            this.gbAliveXYZ.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbUpstream
@@ -72,7 +77,7 @@
             // 
             // btnUpstreamConvert
             // 
-            this.btnUpstreamConvert.Location = new System.Drawing.Point(187, 31);
+            this.btnUpstreamConvert.Location = new System.Drawing.Point(185, 31);
             this.btnUpstreamConvert.Name = "btnUpstreamConvert";
             this.btnUpstreamConvert.Size = new System.Drawing.Size(75, 23);
             this.btnUpstreamConvert.TabIndex = 1;
@@ -122,18 +127,57 @@
             // 
             // tbUpstreamCommon
             // 
-            this.tbUpstreamCommon.Location = new System.Drawing.Point(12, 42);
+            this.tbUpstreamCommon.Location = new System.Drawing.Point(10, 41);
             this.tbUpstreamCommon.Multiline = true;
             this.tbUpstreamCommon.Name = "tbUpstreamCommon";
             this.tbUpstreamCommon.ReadOnly = true;
             this.tbUpstreamCommon.Size = new System.Drawing.Size(250, 110);
             this.tbUpstreamCommon.TabIndex = 3;
             // 
+            // gbAliveXYZ
+            // 
+            this.gbAliveXYZ.Controls.Add(this.label1);
+            this.gbAliveXYZ.Controls.Add(this.tbSensorData);
+            this.gbAliveXYZ.Controls.Add(this.btnOpenAliveMsgFile);
+            this.gbAliveXYZ.Location = new System.Drawing.Point(13, 492);
+            this.gbAliveXYZ.Name = "gbAliveXYZ";
+            this.gbAliveXYZ.Size = new System.Drawing.Size(269, 56);
+            this.gbAliveXYZ.TabIndex = 2;
+            this.gbAliveXYZ.TabStop = false;
+            this.gbAliveXYZ.Text = "XYZ from Alive messages";
+            // 
+            // tbSensorData
+            // 
+            this.tbSensorData.Location = new System.Drawing.Point(125, 22);
+            this.tbSensorData.Name = "tbSensorData";
+            this.tbSensorData.Size = new System.Drawing.Size(135, 21);
+            this.tbSensorData.TabIndex = 1;
+            // 
+            // btnOpenAliveMsgFile
+            // 
+            this.btnOpenAliveMsgFile.Location = new System.Drawing.Point(10, 20);
+            this.btnOpenAliveMsgFile.Name = "btnOpenAliveMsgFile";
+            this.btnOpenAliveMsgFile.Size = new System.Drawing.Size(75, 23);
+            this.btnOpenAliveMsgFile.TabIndex = 0;
+            this.btnOpenAliveMsgFile.Text = "Open";
+            this.btnOpenAliveMsgFile.UseVisualStyleBackColor = true;
+            this.btnOpenAliveMsgFile.Click += new System.EventHandler(this.btnOpenAliveMsgFile_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(95, 26);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(27, 12);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "P2P";
+            // 
             // InoonLoRaParser
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(297, 496);
+            this.ClientSize = new System.Drawing.Size(297, 555);
+            this.Controls.Add(this.gbAliveXYZ);
             this.Controls.Add(this.gbContents);
             this.Controls.Add(this.gbUpstream);
             this.Name = "InoonLoRaParser";
@@ -142,6 +186,8 @@
             this.gbUpstream.PerformLayout();
             this.gbContents.ResumeLayout(false);
             this.gbContents.PerformLayout();
+            this.gbAliveXYZ.ResumeLayout(false);
+            this.gbAliveXYZ.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -157,6 +203,10 @@
         private System.Windows.Forms.TextBox tbUpstreamApplicationPayload;
         private System.Windows.Forms.Label lbCommon;
         private System.Windows.Forms.TextBox tbUpstreamCommon;
+        private System.Windows.Forms.GroupBox gbAliveXYZ;
+        private System.Windows.Forms.TextBox tbSensorData;
+        private System.Windows.Forms.Button btnOpenAliveMsgFile;
+        private System.Windows.Forms.Label label1;
     }
 }
 

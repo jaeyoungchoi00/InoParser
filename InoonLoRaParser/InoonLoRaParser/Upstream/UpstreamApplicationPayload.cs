@@ -10,7 +10,7 @@ namespace InoonLoRaParser.Upstream
     public class UpstreamApplicationPayload
     {
 
-        private const Double accScale = 3.91; //mg for 2G range. 7.81 for 4G range   
+        public const Double accScale = 3.91; //mg for 2G range. 7.81 for 4G range   
         private const int aliveLengthVer1 = 14;
         private const int aliveLengthVer2 = 50;
         private const int eventLengthVer1 = 6;
