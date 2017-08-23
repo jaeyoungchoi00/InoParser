@@ -658,7 +658,7 @@ namespace InoonLoRaParser.Upstream
                     notiString = "Reset";
                     break;
                 case "04":
-                    notiString = "Setup";
+                    notiString = "Setup (BLE)";
                     break;
                 case "FF":
                     notiString = "String. Not yet supported.";
@@ -686,8 +686,9 @@ namespace InoonLoRaParser.Upstream
 
 
             // Notice Payload  
-            len = 2;
+            len = (noticeLength * 2);//1Byte is 2 digit string. 
             subStr = payload.Substring(index, len);
+            //subStr = payload.Substring(index, (noticeLength * 2)); 
 
             switch (noticeType)
             {
@@ -714,8 +715,7 @@ namespace InoonLoRaParser.Upstream
             sb.AppendLine();
             index += len;
 
-
-
+            
             // RSSI
             len = 2;
             subStr = payload.Substring(index, len);
@@ -728,6 +728,9 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString();
         }
 
+        
+        //  1st Byte : Reset reason 
+        //  4th Byte : Error log 
         public string parseNoticePowerUp(string payload)
         {
             String subStr = String.Empty;
@@ -736,6 +739,10 @@ namespace InoonLoRaParser.Upstream
             StringBuilder sb = new StringBuilder();
 
             // power up notice  
+
+            /////////////////////////////////
+            // Parse reset reason 
+            sb.Append("Reset Reason : ");
 
             len = 2;
             subStr = payload.Substring(index, len);
@@ -767,9 +774,48 @@ namespace InoonLoRaParser.Upstream
             }
             catch(FormatException)
             {
-                sb.Append("Invalid Reset Notice.");
+                sb.Append("Invalid reset reason in Notice.");
             }
 
+
+            sb.AppendLine();
+            index += len;
+
+            ////////////////////////////////////////
+            // skip reserved field 
+
+            index += len; //skip 2nd byte 
+            index += len; //skip 3rd byte 
+
+            /////////////////////////////////
+            // Parse Error log 
+            sb.Append("Error Log : ");
+
+            subStr = payload.Substring(index, len);
+            try
+            {
+                
+                Byte powerUpByteErrorLog = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+
+                string bitFlag = Convert.ToString(powerUpByteErrorLog, 2).PadLeft(8, '0'); // 
+
+                var chars = bitFlag.ToCharArray();
+                                
+                if (chars[5].Equals('1'))
+                    sb.Append("LoRa Join 실패 (전원 꺼짐) : Join Request 가 연속 24회 실패하면 전원 꺼짐.");
+
+                if (chars[6].Equals('1'))
+                    sb.Append("LoRa 전송 실패 (전원 꺼짐) : 전송(재전송횟수 8회)이 10회 실패하면 전원 꺼짐.");
+
+                if (chars[7].Equals('1'))
+                    sb.Append("Alive 주기 초과 (리셋) : 내부 에러 발생으로 인해 정해진 Alive 주기에 전송을 못해서 +5분 초과하는 경우 리셋됨.");
+
+            }
+            catch (FormatException)
+            {
+                sb.Append("Invalid error log in Notice.");
+            }
 
             sb.AppendLine();
             index += len;
