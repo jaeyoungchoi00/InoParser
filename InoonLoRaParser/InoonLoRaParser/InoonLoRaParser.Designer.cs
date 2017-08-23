@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(InoonLoRaParser));
             this.gbUpstream = new System.Windows.Forms.GroupBox();
             this.lbInput = new System.Windows.Forms.Label();
             this.tbUpstreamInput = new System.Windows.Forms.TextBox();
@@ -38,9 +39,9 @@
             this.lbCommon = new System.Windows.Forms.Label();
             this.tbUpstreamCommon = new System.Windows.Forms.TextBox();
             this.gbAliveXYZ = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.tbSensorData = new System.Windows.Forms.TextBox();
             this.btnOpenAliveMsgFile = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
             this.gbUpstream.SuspendLayout();
             this.gbContents.SuspendLayout();
             this.gbAliveXYZ.SuspendLayout();
@@ -146,6 +147,15 @@
             this.gbAliveXYZ.TabStop = false;
             this.gbAliveXYZ.Text = "XYZ from Alive messages";
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(95, 26);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(27, 12);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "P2P";
+            // 
             // tbSensorData
             // 
             this.tbSensorData.Location = new System.Drawing.Point(125, 22);
@@ -163,15 +173,6 @@
             this.btnOpenAliveMsgFile.UseVisualStyleBackColor = true;
             this.btnOpenAliveMsgFile.Click += new System.EventHandler(this.btnOpenAliveMsgFile_Click);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(95, 26);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(27, 12);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "P2P";
-            // 
             // InoonLoRaParser
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -180,6 +181,7 @@
             this.Controls.Add(this.gbAliveXYZ);
             this.Controls.Add(this.gbContents);
             this.Controls.Add(this.gbUpstream);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "InoonLoRaParser";
             this.Text = "Ino-on LoRa Parser";
             this.gbUpstream.ResumeLayout(false);
