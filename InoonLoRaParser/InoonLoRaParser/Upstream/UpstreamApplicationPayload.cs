@@ -1244,6 +1244,7 @@ namespace InoonLoRaParser.Upstream
                         payloadStr = "Start";
                         break;
                     case "FF":
+                    case "ff":
                         payloadStr = "Finish";
                         break;
                     default:
