@@ -74,62 +74,144 @@ namespace InoonLoRaParser.Upstream
             sb.AppendLine();
             index += len;
 
-            // Reserved   
-            sb.AppendFormat("Reserved: {0}", inputStr.Substring(index, len));
-            sb.AppendLine();
-            index += len;
+            if (this.versionNumber < 3)
+            {
+                // Reserved   
+                sb.AppendFormat("Reserved: {0}", inputStr.Substring(index, len));
+                sb.AppendLine();
+                index += len;
 
-            // PacketID   
-            sb.AppendFormat("PacketID: 0x{0}", inputStr.Substring(index, len));
-            sb.AppendLine();
-            index += len;
-
-
-
-            // Device Type    
-            len = 4; 
-            subStr = inputStr.Substring(index, len);
-            this.devType = getDeviceType(subStr); 
-
-            sb.AppendFormat("Device Type: {0}", getDeviceTypeString(subStr));
-            sb.AppendLine();
-            index += len;
+                // PacketID   
+                sb.AppendFormat("PacketID: 0x{0}", inputStr.Substring(index, len));
+                sb.AppendLine();
+                index += len;
 
 
 
-            // Packet Type    
-            len = 1; 
-            subStr = inputStr.Substring(index, len);
-            this.upPacketType = getPacketType(subStr);            
-            sb.AppendFormat("Packet Type: {0}", getPacketTypeString(subStr));
-            sb.AppendLine();
-            index += len;
+                // Device Type    
+                len = 4;
+                subStr = inputStr.Substring(index, len);
+                this.devType = getDeviceType(subStr);
+
+                sb.AppendFormat("Device Type: {0}", getDeviceTypeString(subStr));
+                sb.AppendLine();
+                index += len;
+
+
+
+                // Packet Type    
+                len = 1;
+                subStr = inputStr.Substring(index, len);
+                this.upPacketType = getPacketType(subStr);
+                sb.AppendFormat("Packet Type: {0}", getPacketTypeString(subStr));
+                sb.AppendLine();
+                index += len;
+
+
+                // Request Type    
+                subStr = inputStr.Substring(index, len);
+                this.upRequestType = getRequestType(subStr);
+                sb.AppendFormat("Request Type: {0}", getRequestTypeString(subStr));
+                sb.AppendLine();
+                index += len;
+
+
+                // Battery level   
+                len = 2;
+                subStr = inputStr.Substring(index, len);
+                int batterylevel = Convert.ToInt32(subStr, 16);
+                sb.AppendFormat("Battery: {0} %", batterylevel);
+                sb.AppendLine();
+                index += len;
+
+                // temperature   
+                subStr = inputStr.Substring(index, len);
+                int temperature = Convert.ToInt32(subStr, 16);
+                sb.AppendFormat("Temperature: {0} ", temperature);
+                sb.AppendLine();
+                index += len;
+            }
+            else // version 3 
+            {
+
+                // Device Type    
+                len = 2;
+                subStr = inputStr.Substring(index, len);
+                this.devType = getDeviceType(subStr);
+
+                sb.AppendFormat("Device Type: {0}", getDeviceTypeString(subStr));
+                sb.AppendLine();
+                index += len;
+
+                // Sequence number     
+                len = 2;
+                subStr = inputStr.Substring(index, len);
+                int seqno = Convert.ToInt32(subStr, 16);
+
+                sb.AppendFormat("Sequence number: {0}", seqno);
+                sb.AppendLine();
+                index += len;
+
+                //Device status 
+                // Battery level   
+                len = 2;
+                subStr = inputStr.Substring(index, len);
+                int batterylevel = Convert.ToInt32(subStr, 16);
+                sb.AppendFormat("Battery: {0} %", batterylevel);
+                sb.AppendLine();
+                index += len;
+
+                // temperature   
+                subStr = inputStr.Substring(index, len);
+                int temperature = Convert.ToInt32(subStr, 16);
+                sb.AppendFormat("Temperature: {0} ", temperature);
+                sb.AppendLine();
+                index += len;
+
+                // LoRa 
+                // LoRa Error  
+                len = 2;
+                subStr = inputStr.Substring(index, len);
+                int loraError = Convert.ToInt32(subStr, 16);
+                sb.AppendFormat("Fail LoRa count: {0} ", loraError);
+                sb.AppendLine();
+                index += len;
+
+                // LoRa RSSI    
+                subStr = inputStr.Substring(index, len);
+                int loraRssi = Convert.ToInt16(subStr, 16);
+                loraRssi = UpstreamApplicationPayload.convertSignedByteToInt(loraRssi);
+                sb.AppendFormat("LoRa RSSI: {0} ", loraRssi);
+                sb.AppendLine();
+                index += len;
+
+
+                // Packet Type    
+                len = 1;
+                subStr = inputStr.Substring(index, len);
+                this.upPacketType = getPacketType(subStr);
+                sb.AppendFormat("Packet Type: {0}", getPacketTypeString(subStr));
+                sb.AppendLine();
+                index += len;
+
+
+                // Request Type    
+                subStr = inputStr.Substring(index, len);
+                this.upRequestType = getRequestType(subStr);
+                sb.AppendFormat("Request Type: {0}", getRequestTypeString(subStr));
+                sb.AppendLine();
+                index += len;
+
+
+                // Reserved 
+                len = 4;
+                subStr = inputStr.Substring(index, len); 
+                sb.AppendFormat("Reserved: {0}", subStr);
+                sb.AppendLine();
+                index += len;
+
+            }
             
-
-            // Request Type    
-            subStr = inputStr.Substring(index, len);
-            this.upRequestType = getRequestType(subStr);
-            sb.AppendFormat("Request Type: {0}", getRequestTypeString(subStr));
-            sb.AppendLine();
-            index += len;
-
-
-            // Battery level   
-            len = 2; 
-            subStr = inputStr.Substring(index, len);
-            int batterylevel = Convert.ToInt32(subStr, 16);
-            sb.AppendFormat("Battery: {0} %", batterylevel);
-            sb.AppendLine();
-            index += len;
-
-            // temperature   
-            subStr = inputStr.Substring(index, len);
-            int temperature = Convert.ToInt32(subStr, 16);
-            sb.AppendFormat("Temperature: {0} ", temperature);
-            sb.AppendLine();
-            index += len;
-            
-
             return sb.ToString(); 
         }
 
@@ -137,9 +219,9 @@ namespace InoonLoRaParser.Upstream
         {
             DeviceType devType; 
 
-            if (subStr.Equals("0001"))
+            if ((subStr.Equals("0001")) || (subStr.Equals("01")))
                 devType = DeviceType.ParkingPlex;
-            else if (subStr.Equals("0002"))
+            else if ((subStr.Equals("0002")) || (subStr.Equals("02")))
                 devType = DeviceType.InoVibe;
             else
                 devType = DeviceType.Unknown;
@@ -151,12 +233,12 @@ namespace InoonLoRaParser.Upstream
         {
             string str;
 
-            if (subStr.Equals("0001"))
+            if ((subStr.Equals("0001")) || (subStr.Equals("01")))
                 str = "ParkingPlex";
-            else if (subStr.Equals("0002"))
+            else if ((subStr.Equals("0002")) || (subStr.Equals("02")))
                 str = "Ino-Vibe";
             else
-                str = "Unknonws";
+                str = "Unknown device type";
 
             return str;
         }

@@ -13,6 +13,7 @@ namespace InoonLoRaParser.Upstream
         public const Double accScale = 3.91; //mg for 2G range. 7.81 for 4G range   
         private const int aliveLengthVer1 = 14;
         private const int aliveLengthVer2 = 50;
+        private const int aliveLengthVer3 = 50;
         private const int eventLengthVer1 = 6;
         private const int eventLengthVer2 = 10;
 
@@ -98,7 +99,7 @@ namespace InoonLoRaParser.Upstream
 
             }            
             else if ((2 == version) && (aliveLengthVer2 == strLen))// version 2 
-                {
+            {
                 // X axis 
                 len = 4;
                 subStr = payload.Substring(index, len);
@@ -315,6 +316,212 @@ namespace InoonLoRaParser.Upstream
                 
 
             }
+            else if ((3 == version) && (aliveLengthVer3 == strLen))// version 2 
+            {
+                // X axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int xaxis = Convert.ToInt16(subStr, 16);
+                Double xconv = accScale * (Double)xaxis;
+                sb.AppendFormat("X axis: {0:N1} mg", xconv);
+                sb.AppendLine();
+                index += len;
+
+
+                // Y axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int yaxis = Convert.ToInt16(subStr, 16);
+                Double yconv = accScale * (Double)yaxis;
+                sb.AppendFormat("Y axis: {0:N1} mg", yconv);
+                sb.AppendLine();
+                index += len;
+
+                // Z axis 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int zaxis = Convert.ToInt16(subStr, 16);
+                Double zconv = accScale * (Double)zaxis;
+                sb.AppendFormat("Z axis: {0:N1} mg", zconv);
+                sb.AppendLine();
+                index += len;
+
+
+                // Alive Period  (min) 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int alivePeriod = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Alive period: {0} min", alivePeriod);
+                sb.AppendLine();
+                index += len;
+
+
+                // Acc Config -- Sensitivity level 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int sensitivityLevel = Convert.ToInt16(subStr, 16);
+                int sensitivityGrav = 1;
+                for (int i = 0; i < sensitivityLevel; i++)
+                {
+                    sensitivityGrav *= 2;
+                }
+                sb.AppendFormat("Sensitivity: {0} G ", sensitivityGrav.ToString());
+                sb.AppendLine();
+                index += len;
+
+                // Acc Config -- Sensitivity Threshlod 
+                len = 4;
+                subStr = payload.Substring(index, len);
+                int sensitivityThesh = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Sensitivity Threshlod : {0} mg", sensitivityThesh.ToString());
+                sb.AppendLine();
+                index += len;
+
+                // Acc Interrupt 
+
+                // Acc Interrupt No 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int accIntrNum = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Acc Interrupt No: {0} ", accIntrNum);
+                sb.AppendLine();
+                index += len;
+
+                // Skip reserved field 
+                len = 2;
+                index += len;
+
+                // Acc Interrupt :  Data field 
+                len = 2;
+                sb.Append("Acc Interrupt enabled axis : ");
+                subStr = payload.Substring(index, len);
+
+                //SByte accByte = Convert.ToSByte(subStr);
+                Byte accByte = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+                string bitFlag = Convert.ToString(accByte, 2).PadLeft(8, '0'); // 00010001
+
+                var chars = bitFlag.ToCharArray();
+
+                if (chars[5].Equals('1'))
+                    sb.Append("X");
+
+                if (chars[6].Equals('1'))
+                    sb.Append("Y");
+
+                if (chars[7].Equals('1'))
+                    sb.Append("Z");
+
+                sb.AppendLine();
+                index += len;
+
+
+                // Data log enable 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int logEnable = Convert.ToInt16(subStr, 16);
+
+                if (logEnable == 0)
+                {
+                    sb.Append("Acc Data Log Disabled. ");
+                }
+                else
+                {
+                    sb.Append("Acc Data Log Enabled. ");
+                }
+
+                sb.AppendLine();
+                index += len;
+
+                // Data log Interval  
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int logInterval = Convert.ToInt16(subStr, 16);
+                logInterval = 10 * logInterval; // predefined spec. 
+                sb.AppendFormat("Acc Interval : {0} ms ", logInterval.ToString());
+
+                sb.AppendLine();
+                index += len;
+
+                // Data log :  No of Biocks 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int numBlocks = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Acc Blocks : {0} ", numBlocks.ToString());
+
+                sb.AppendLine();
+                index += len;
+
+                // Setup message : installed or not 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int installStatus = Convert.ToInt16(subStr, 16);
+
+                if (installStatus == 0)
+                {
+                    sb.Append("Uninstalled ");
+                }
+                else
+                {
+                    sb.Append("Installed ");
+                }
+
+                sb.AppendLine();
+                index += len;
+
+
+                // FW Version 
+                // Major 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int fwMajor = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("FW version: {0} ", fwMajor.ToString("00"));
+                //sb.AppendLine();
+                index += len;
+
+                // Minor 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int fwMinor = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat(" {0} ", fwMinor.ToString("00"));
+                //sb.AppendLine();
+                index += len;
+
+                // Revision 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int fwRev = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat(" {0} ", fwRev.ToString("00"));
+                sb.AppendLine();
+                index += len;
+
+
+                // LoRa module FW Version (SoluM)
+                // Major 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                fwMajor = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("LoRa Module FW version: {0} ", fwMajor.ToString("00"));
+                //sb.AppendLine();
+                index += len;
+
+                // Minor 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                fwMinor = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat(" {0} ", fwMinor.ToString("00"));
+                //sb.AppendLine();
+                index += len;
+
+                // Revision 
+                len = 2;
+                subStr = payload.Substring(index, len);
+                fwRev = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat(" {0} ", fwRev.ToString("00"));
+                sb.AppendLine();
+                index += len;
+                
+            }
             else
             {
                 sb.Append("Invalid Alive Message Format");
@@ -324,7 +531,7 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString(); 
         }
 
-        private int convertSignedByteToInt(int rssi)
+        public static int convertSignedByteToInt(int rssi)
         {
             int result = 0; 
             if (rssi > 127)
@@ -426,7 +633,7 @@ namespace InoonLoRaParser.Upstream
 
             }
             // Version 2 
-            else if ((2 == version) && (eventLengthVer2 == strLen))
+            else if ((1 < version) && (eventLengthVer2 == strLen))
             {
                 // Event type 
                 len = 2;
@@ -501,14 +708,18 @@ namespace InoonLoRaParser.Upstream
                 sb.AppendLine();
             }
 
-            // RSSI
-            len = 2;
-            subStr = payload.Substring(index, len);
-            int rssi = Convert.ToInt16(subStr, 16);
-            rssi = convertSignedByteToInt(rssi);
-            sb.AppendFormat("RSSI: {0} ", rssi);
-            sb.AppendLine();
-            index += len;
+            if (version < 3)
+            {
+                // RSSI
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int rssi = Convert.ToInt16(subStr, 16);
+                rssi = convertSignedByteToInt(rssi);
+                sb.AppendFormat("RSSI: {0} ", rssi);
+                sb.AppendLine();
+                index += len;
+
+            }
 
             return sb.ToString();
         }
@@ -548,6 +759,9 @@ namespace InoonLoRaParser.Upstream
                 case "04":
                     eventString = "LoraErrorNok";
                     break;
+                case "05":
+                    eventString = "LoraErrorOverReTxInfinite";
+                    break;
                 default:
                     eventString = "LoraErrorUnknown";
                     break;
@@ -558,16 +772,19 @@ namespace InoonLoRaParser.Upstream
             sb.AppendLine();
             index += len;
 
-            
+            if (version < 3)
+            {
 
-            // RSSI
-            len = 2;
-            subStr = payload.Substring(index, len);
-            int rssi = Convert.ToInt16(subStr, 16);
-            rssi = convertSignedByteToInt(rssi);
-            sb.AppendFormat("RSSI: {0} ", rssi);
-            sb.AppendLine();
-            index += len;
+                // RSSI
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int rssi = Convert.ToInt16(subStr, 16);
+                rssi = convertSignedByteToInt(rssi);
+                sb.AppendFormat("RSSI: {0} ", rssi);
+                sb.AppendLine();
+                index += len;
+
+            }
 
             return sb.ToString();
         }
@@ -614,16 +831,19 @@ namespace InoonLoRaParser.Upstream
             sb.AppendLine();
             index += len;
 
+            if (version < 3)
+            {
 
+                // RSSI
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int rssi = Convert.ToInt16(subStr, 16);
+                rssi = convertSignedByteToInt(rssi);
+                sb.AppendFormat("RSSI: {0} ", rssi);
+                sb.AppendLine();
+                index += len;
 
-            // RSSI
-            len = 2;
-            subStr = payload.Substring(index, len);
-            int rssi = Convert.ToInt16(subStr, 16);
-            rssi = convertSignedByteToInt(rssi);
-            sb.AppendFormat("RSSI: {0} ", rssi);
-            sb.AppendLine();
-            index += len;
+            }
 
             return sb.ToString();
         }
@@ -715,15 +935,18 @@ namespace InoonLoRaParser.Upstream
             sb.AppendLine();
             index += len;
 
-            
-            // RSSI
-            len = 2;
-            subStr = payload.Substring(index, len);
-            int rssi = Convert.ToInt16(subStr, 16);
-            rssi = convertSignedByteToInt(rssi);
-            sb.AppendFormat("RSSI: {0} ", rssi);
-            sb.AppendLine();
-            index += len;
+            if (version < 3)
+            {
+                // RSSI
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int rssi = Convert.ToInt16(subStr, 16);
+                rssi = convertSignedByteToInt(rssi);
+                sb.AppendFormat("RSSI: {0} ", rssi);
+                sb.AppendLine();
+                index += len;
+
+            }
 
             return sb.ToString();
         }
@@ -756,23 +979,32 @@ namespace InoonLoRaParser.Upstream
 
                 var chars = bitFlag.ToCharArray();
 
+                if (chars[1].Equals('1'))
+                    sb.Append("Reset due to wake up from system OFF mode when wakeup is triggered from entering into debug interface mode. "); // Not used 
+
+                if (chars[2].Equals('1'))
+                    sb.Append("Reset due to wake up from system OFF mode when wakeup is	triggered from ANADETECT signal from LPCOMP. "); // Not used 
+
+                if (chars[3].Equals('1'))
+                    sb.Append("Reset due to wake up from system OFF mode when wakeup is	triggered from DETECT signal from GPIO. "); // Not used 
+
                 if (chars[4].Equals('1'))
                     sb.Append("CPU lock-up Reset. ");
 
                 if (chars[5].Equals('1'))
-                    sb.Append("Software Reset. ");
+                    sb.Append("SYSRESETREQ Reset. ");
 
                 if (chars[6].Equals('1'))
                     sb.Append("Watchdog Reset. ");
 
                 if (chars[7].Equals('1'))
-                    sb.Append("Reset Pin. ");
+                    sb.Append("Pin-reset. ");
 
                 if (subStr.Equals("00"))
-                    sb.Append("전원 꺼진 상태에서 전원이 인가됨. ");
+                    sb.Append("Power-on-reset or a brown out reset. ");
 
             }
-            catch(FormatException)
+            catch (FormatException)
             {
                 sb.Append("Invalid reset reason in Notice.");
             }
@@ -789,27 +1021,75 @@ namespace InoonLoRaParser.Upstream
 
             /////////////////////////////////
             // Parse Error log 
-            sb.Append("Error Log : ");
+            sb.Append("Power Off Error Log : ");
 
             subStr = payload.Substring(index, len);
+
             try
             {
-                
-                Byte powerUpByteErrorLog = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
 
+                switch (subStr)
+                {
+                    case "00":
+                        sb.Append("No Power-off record. ");
+                        break;
+                    case "01":
+                        sb.Append("Alive 주기 초과 (전원 리셋) : 내부 에러 발생으로 인해 정해진 Alive 주기에 전송을 못해서 +5분 초과하는 경우 리셋됨.");
+                        break;
+                    case "02":
+                        sb.Append("LoRa 전송 실패 (전원 꺼짐) : 전송(재전송횟수 8회)이 10회 실패하면 전원 꺼짐.");
+                        break;
+                    case "04":
+                        sb.Append("LoRa Join 실패 (전원 꺼짐) : Join Request 가 연속 24회 실패하면 전원 꺼짐.");
+                        break;
+                    case "05":
+                        sb.Append("PowerOffWatchdogTimeout (리셋): Watchdog Timeout 통한 전원 리셋");
+                        break;
+                    case "06":
+                        sb.Append("PowerOffNoAckOfEndPacket (전원 꺼짐): End packet 전송 후 일정시간 동안 Ack 못 받은 경우 전원 꺼짐");
+                        break;
+                    case "07":
+                        sb.Append("PowerOffLoRaRxCmdPowerOff (전원 꺼짐): LoRa downstream 통해 PowerOff 명령(0x01) 수신하여 전원 꺼짐");
+                        break;
+                    case "08":
+                        sb.Append("PowerOffBLERxCmdPowerOff (전원 꺼짐): BLE 통해 PowerOff 명령(0x92) 수신하여 전원 꺼짐");
+                        break;
+                    case "09":
+                        sb.Append("PowerOffLowBattery (전원 꺼짐): Low Battery 일 때 전원 꺼짐");
+                        break;
+                    case "0A":
+                    case "0a":
+                        sb.Append("PowerOffUninstalled (전원 꺼짐): 설치되지 않은 디바이스의 전송 횟수 초과로 전원 꺼짐");
+                        break;
+                    case "81":
+                        sb.Append("PowerOffResetFactorySetting (전원 리셋): Factory Setting 명령어 통해 전원 리셋");
+                        break;
+                    case "82":
+                        sb.Append("PowerOffResetDeviceUpsideDown (전원 리셋): 15초 이하일 때 포지션이 바뀌면 전원 리셋");
+                        break;
+                    case "83":
+                        sb.Append("PowerOffResetWatchdogConfig (전원 리셋): Watchdog configuration을 바꾸었을 때 전원 리셋");
+                        break;
+                    case "84":
+                        sb.Append("PowerOffResetLoRaRxCmdReset (전원 리셋): LoRa downstream 통해 Reset 명령(0x02) 수신하여 전원 리셋");
+                        break;
+                    case "85":
+                        sb.Append("PowerOffResetBLERxCmdReset (전원 리셋): BLE 통해 Reset 명령(0x02) 수신하여 전원 리셋");
+                        break;
+                    case "86":
+                        sb.Append("PowerOffResetFactoryReset (전원 리셋): Factory Reset 수신하여 전원 리셋");
+                        break;
+                    case "87":
+                        sb.Append("PowerOffResetSKTReset (전원 리셋): SKT_DEV_RESET 수신하여 전원 리셋");
+                        break;
+                    case "88":
+                        sb.Append("PowerOffResetSoluMFWUpgrade (전원 리셋): SoluM FW upgrade 후 전원 리셋");
+                        break;
+                    default:
+                        sb.Append("Unknown power off reason");
+                        break;
+                }
 
-                string bitFlag = Convert.ToString(powerUpByteErrorLog, 2).PadLeft(8, '0'); // 
-
-                var chars = bitFlag.ToCharArray();
-                                
-                if (chars[5].Equals('1'))
-                    sb.Append("LoRa Join 실패 (전원 꺼짐) : Join Request 가 연속 24회 실패하면 전원 꺼짐.");
-
-                if (chars[6].Equals('1'))
-                    sb.Append("LoRa 전송 실패 (전원 꺼짐) : 전송(재전송횟수 8회)이 10회 실패하면 전원 꺼짐.");
-
-                if (chars[7].Equals('1'))
-                    sb.Append("Alive 주기 초과 (리셋) : 내부 에러 발생으로 인해 정해진 Alive 주기에 전송을 못해서 +5분 초과하는 경우 리셋됨.");
 
             }
             catch (FormatException)
@@ -820,7 +1100,7 @@ namespace InoonLoRaParser.Upstream
             sb.AppendLine();
             index += len;
 
-            return sb.ToString(); 
+            return sb.ToString();
         }
 
 
@@ -855,7 +1135,7 @@ namespace InoonLoRaParser.Upstream
                     payloadStr = "에러";
                     break;
                 default:
-                    payloadStr = "Unknown notice power off message ";
+                    payloadStr = "Unknown power off notice ";
                     break;
             }
 
@@ -937,20 +1217,40 @@ namespace InoonLoRaParser.Upstream
             subStr = payload.Substring(index, len);
 
             string payloadStr;
-            switch (subStr)
+            if (version < 3)
             {
-                case "00":
-                    payloadStr = "Start";
-                    break;
-                case "01":
-                    payloadStr = "Intermediate";
-                    break;
-                case "02":
-                    payloadStr = "Finish";
-                    break;
-                default:
-                    payloadStr = "Unknown data log message";
-                    break;
+                switch (subStr)
+                {
+                    case "00":
+                        payloadStr = "Start";
+                        break;
+                    case "01":
+                        payloadStr = "Intermediate";
+                        break;
+                    case "02":
+                        payloadStr = "Finish";
+                        break;
+                    default:
+                        payloadStr = "Unknown data log message";
+                        break;
+                }
+
+            }
+            else
+            {
+                switch (subStr)
+                {
+                    case "00":
+                        payloadStr = "Start";
+                        break;
+                    case "FF":
+                        payloadStr = "Finish";
+                        break;
+                    default:
+                        payloadStr = "Intermediate " + subStr;
+                        break;
+                }
+
             }
 
             sb.Append(payloadStr);

@@ -14,17 +14,11 @@ namespace InoonLoRaParser
 {
     public partial class InoonLoRaParser : Form
     {
-        
-        //public enum CommonPacketStartIndex { cpVer = 0, cpResv = 2, cpPacketID = 4, cpDevType = 6, cpPacketType = 10, cpReqType = 11, cpBatt = 12, cpTemp = 14};
-        
-        public const int CommonPayloadLength = 16;
-        public const int AlivePayloadLength = 50;
-        public const int packetTypeIndex = 10;
-        public const int data_size = 4; 
-        public const int index_X = CommonPayloadLength + 0;
-        public const int index_Y = CommonPayloadLength + data_size;
-        public const int index_Z = CommonPayloadLength + data_size + data_size;
 
+        public const int CommonPayloadLengthVer2 = 16;
+        public const int CommonPayloadLengthVer3 = 20;
+
+        //public enum CommonPacketStartIndex { cpVer = 0, cpResv = 2, cpPacketID = 4, cpDevType = 6, cpPacketType = 10, cpReqType = 11, cpBatt = 12, cpTemp = 14};
 
         public InoonLoRaParser()
         {
@@ -36,6 +30,7 @@ namespace InoonLoRaParser
             String upInputStr = tbUpstreamInput.Text;
             upInputStr = upInputStr.Trim();
             tbUpstreamInput.Text = upInputStr;
+            int headerLength = CommonPayloadLengthVer2; 
 
             //parse common 
             UpstreamCommon uc = new UpstreamCommon();
@@ -45,14 +40,95 @@ namespace InoonLoRaParser
             if (false == String.IsNullOrEmpty(parsedResult))
             {
                 tbUpstreamCommon.Text = parsedResult;
-                String payloadStr = upInputStr.Substring(16);
+                                
+                headerLength = getHeaderLength(uc.versionNumber); 
+                
+                String payloadStr = upInputStr.Substring(headerLength);
                 UpstreamApplicationPayload uap = new UpstreamApplicationPayload();
                 tbUpstreamApplicationPayload.Text = uap.parseApplicationPayload(uc.upPacketType, payloadStr, uc.versionNumber);
+
+                // Checksum 
+                String fcsResult = compareFCS(upInputStr, uc.versionNumber);
+                tbUpstreamApplicationPayload.Text += fcsResult; 
             }
             else
             {
                 tbUpstreamCommon.Text = "Invalid input";
             }            
+        }
+
+        private String compareFCS(String frame, int version)
+        {
+            String fcsResult = String.Empty;
+            int length = frame.Length; 
+
+            if (version < 3)
+            {
+                fcsResult = "No FCS\n";
+            }
+            else
+            {
+                if (length < 2 )
+                {
+                    fcsResult = "Frame too short. " + length.ToString() + "B\n";
+                }
+                else
+                {
+                    String validFrame = frame.Substring(0, length - 2);
+                    String fcs = frame.Substring(length - 2, 2);
+
+                    int fcsInPacket = Convert.ToInt32(fcs, 16);
+                    int fcsCalc = calculateChecksum(validFrame);
+
+                    if (fcsInPacket == fcsCalc)
+                    {
+                        fcsResult = "Checksum OK\n";
+                    }
+                    else
+                    {
+                        fcsResult = "Checksum FAIL\n";
+                    }
+                }
+            }
+
+            return fcsResult; 
+        }
+
+        private int calculateChecksum(String dataToCalculate)
+        {
+            /*
+            byte[] byteToCalculate = Encoding.ASCII.GetBytes(dataToCalculate);
+            int checksum = 0;
+            foreach (byte chData in byteToCalculate)
+            {
+                checksum += chData;
+            }
+            checksum &= 0xff;
+            //return checksum.ToString("X2");
+            return checksum;
+            */
+            
+            int checksum = 0;
+            
+            // You'll need to add error checking that the string only contains [0-9A-F], 
+            // is an even number of characters, etc.
+            for (int i = 0; i < dataToCalculate.Length; i += 2)
+            {
+                int value = int.Parse(dataToCalculate.Substring(i, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
+                checksum = (checksum + value) & 0xFF;
+            }
+            return checksum; 
+        }
+
+        private int getHeaderLength(int versionNumer)
+        {
+            int res = CommonPayloadLengthVer2; 
+            if (versionNumer < 3)
+                res = CommonPayloadLengthVer2;
+            else
+                res = CommonPayloadLengthVer3;
+
+            return res; 
         }
 
         private void tbUpstreamInput_KeyUp(object sender, KeyEventArgs e)
@@ -65,7 +141,17 @@ namespace InoonLoRaParser
         private void btnOpenAliveMsgFile_Click(object sender, EventArgs e)
         {
 
+            int CommonPayloadLengthVer2 = 16;
+            int AlivePayloadLength = 50;
+            int packetTypeIndex = 10;
+
+            int data_size = 4;
+            int index_X = CommonPayloadLengthVer2 + 0;
+            int index_Y = CommonPayloadLengthVer2 + data_size;
+            int index_Z = CommonPayloadLengthVer2 + data_size + data_size;
+
             string xval, yval, zval;
+
             double xconv = Double.NaN, yconv = Double.NaN, zconv = Double.NaN;
 
             List<double> xlist = new List<double>();
@@ -103,7 +189,7 @@ namespace InoonLoRaParser
                         words = line.Split(delimiterChars);
                         alivemsg = words.Last(); 
 
-                        if (alivemsg.Length == (CommonPayloadLength + AlivePayloadLength) && (alivemsg.ElementAt(packetTypeIndex - 1).Equals('2')))
+                        if (alivemsg.Length == (CommonPayloadLengthVer2 + AlivePayloadLength) && (alivemsg.ElementAt(packetTypeIndex - 1).Equals('2')))
                         {
                             xval = alivemsg.Substring(index_X, data_size); 
                             yval = alivemsg.Substring(index_Y, data_size);
