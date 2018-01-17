@@ -952,79 +952,9 @@ namespace InoonLoRaParser.Upstream
         }
 
         
-        //  1st Byte : Reset reason 
-        //  4th Byte : Error log 
-        public string parseNoticePowerUp(string payload)
+        private String parsePowerOffErrorLog(String subStr)
         {
-            String subStr = String.Empty;
-            int index = 0;
-            int len = 2;
             StringBuilder sb = new StringBuilder();
-
-            // power up notice  
-
-            /////////////////////////////////
-            // Parse reset reason 
-            sb.Append("Reset Reason : ");
-
-            len = 2;
-            subStr = payload.Substring(index, len);
-            try
-            {
-                //SByte powerUpByte = Convert.ToSByte(subStr);
-                Byte powerUpByte = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-
-
-                string bitFlag = Convert.ToString(powerUpByte, 2).PadLeft(8, '0'); // 00010001
-
-                var chars = bitFlag.ToCharArray();
-
-                if (chars[1].Equals('1'))
-                    sb.Append("Reset due to wake up from system OFF mode when wakeup is triggered from entering into debug interface mode. "); // Not used 
-
-                if (chars[2].Equals('1'))
-                    sb.Append("Reset due to wake up from system OFF mode when wakeup is	triggered from ANADETECT signal from LPCOMP. "); // Not used 
-
-                if (chars[3].Equals('1'))
-                    sb.Append("Reset due to wake up from system OFF mode when wakeup is	triggered from DETECT signal from GPIO. "); // Not used 
-
-                if (chars[4].Equals('1'))
-                    sb.Append("CPU lock-up Reset. ");
-
-                if (chars[5].Equals('1'))
-                    sb.Append("SYSRESETREQ Reset. ");
-
-                if (chars[6].Equals('1'))
-                    sb.Append("Watchdog Reset. ");
-
-                if (chars[7].Equals('1'))
-                    sb.Append("Pin-reset. ");
-
-                if (subStr.Equals("00"))
-                    sb.Append("Power-on-reset or a brown out reset. ");
-
-            }
-            catch (FormatException)
-            {
-                sb.Append("Invalid reset reason in Notice.");
-            }
-
-
-            sb.AppendLine();
-            index += len;
-
-            ////////////////////////////////////////
-            // skip reserved field 
-
-            index += len; //skip 2nd byte 
-            index += len; //skip 3rd byte 
-
-            /////////////////////////////////
-            // Parse Error log 
-            sb.Append("Power Off Error Log : ");
-
-            subStr = payload.Substring(index, len);
-
             try
             {
 
@@ -1098,6 +1028,87 @@ namespace InoonLoRaParser.Upstream
             }
 
             sb.AppendLine();
+
+            return sb.ToString(); 
+
+        }
+
+        //  1st Byte : Reset reason 
+        //  4th Byte : Error log 
+        public string parseNoticePowerUp(string payload)
+        {
+            String subStr = String.Empty;
+            int index = 0;
+            int len = 2;
+            StringBuilder sb = new StringBuilder();
+
+            // power up notice  
+
+            /////////////////////////////////
+            // Parse reset reason 
+            sb.Append("Reset Reason : ");
+
+            len = 2;
+            subStr = payload.Substring(index, len);
+            try
+            {
+                //SByte powerUpByte = Convert.ToSByte(subStr);
+                Byte powerUpByte = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+
+                string bitFlag = Convert.ToString(powerUpByte, 2).PadLeft(8, '0'); // 00010001
+
+                var chars = bitFlag.ToCharArray();
+
+                if (chars[1].Equals('1'))
+                    sb.Append("Reset due to wake up from system OFF mode when wakeup is triggered from entering into debug interface mode. "); // Not used 
+
+                if (chars[2].Equals('1'))
+                    sb.Append("Reset due to wake up from system OFF mode when wakeup is	triggered from ANADETECT signal from LPCOMP. "); // Not used 
+
+                if (chars[3].Equals('1'))
+                    sb.Append("Reset due to wake up from system OFF mode when wakeup is	triggered from DETECT signal from GPIO. "); // Not used 
+
+                if (chars[4].Equals('1'))
+                    sb.Append("CPU lock-up Reset. ");
+
+                if (chars[5].Equals('1'))
+                    sb.Append("SYSRESETREQ Reset. ");
+
+                if (chars[6].Equals('1'))
+                    sb.Append("Watchdog Reset. ");
+
+                if (chars[7].Equals('1'))
+                    sb.Append("Pin-reset. ");
+
+                if (subStr.Equals("00"))
+                    sb.Append("Power-on-reset or a brown out reset. ");
+
+            }
+            catch (FormatException)
+            {
+                sb.Append("Invalid reset reason in Notice.");
+            }
+
+
+            sb.AppendLine();
+            index += len;
+
+            ////////////////////////////////////////
+            // skip reserved field 
+
+            index += len; //skip 2nd byte 
+            index += len; //skip 3rd byte 
+
+            /////////////////////////////////
+            // Parse Error log 
+            sb.Append("Power Off Error Log : ");
+
+            subStr = payload.Substring(index, len);
+
+            String errStr = parsePowerOffErrorLog(subStr);
+            sb.Append(errStr); 
+
             index += len;
 
             return sb.ToString();
@@ -1116,7 +1127,9 @@ namespace InoonLoRaParser.Upstream
             len = 2;
             subStr = payload.Substring(index, len);
 
+            /*
             string payloadStr;
+
             switch (subStr)
             {
                 case "01":
@@ -1141,6 +1154,11 @@ namespace InoonLoRaParser.Upstream
 
             sb.Append(payloadStr); 
             sb.AppendLine();
+            */
+
+            String errStr = parsePowerOffErrorLog(subStr);
+            sb.Append(errStr);
+            
             index += len;
 
             return sb.ToString();
@@ -1176,6 +1194,9 @@ namespace InoonLoRaParser.Upstream
                     break;
                 case "01":
                     payloadStr = "Install";
+                    break;
+                case "02":
+                    payloadStr = "RequestInstall";
                     break;
                 default:
                     payloadStr = "Unknown notice setup message";
