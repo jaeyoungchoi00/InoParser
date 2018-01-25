@@ -126,7 +126,8 @@ namespace InoonLoRaParser.Upstream
 
                 // temperature   
                 subStr = inputStr.Substring(index, len);
-                int temperature = Convert.ToInt32(subStr, 16);
+                int temperature = Convert.ToInt16(subStr, 16);
+                temperature = UpstreamApplicationPayload.convertSignedByteToInt(temperature);
                 sb.AppendFormat("Temperature: {0} ", temperature);
                 sb.AppendLine();
                 index += len;
@@ -163,7 +164,8 @@ namespace InoonLoRaParser.Upstream
 
                 // temperature   
                 subStr = inputStr.Substring(index, len);
-                int temperature = Convert.ToInt32(subStr, 16);
+                int temperature = Convert.ToInt16(subStr, 16);
+                temperature = UpstreamApplicationPayload.convertSignedByteToInt(temperature);
                 sb.AppendFormat("Temperature: {0} ", temperature);
                 sb.AppendLine();
                 index += len;
