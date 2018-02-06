@@ -34,6 +34,8 @@ namespace InoonLoRaParser.Upstream
                 res = parseNotice(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.DataLog)
                 res = parseDataLog(pktStr, version);
+            else if (pktType == UpstreamCommon.UpPacketType.Report)
+                res = parseReport(pktStr, version);
             else
                 res = "Unknown packet";
 
@@ -951,7 +953,156 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString();
         }
 
-        
+
+        public string parseReport(string payload, int version)
+        {
+            StringBuilder sb = new StringBuilder();
+            int index = 0;
+            String noticeType;
+            String subStr;
+            int len = 2;
+
+            sb.Append("Report");
+            sb.AppendLine();
+
+            // Trim whitespace
+            payload = payload.Trim();
+
+            // Report Header 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            SByte accByte = Convert.ToSByte(subStr);
+
+            // X Y Z bit 
+            string bitFlag = Convert.ToString(accByte, 2).PadLeft(8, '0'); // 00010001
+
+            var chars = bitFlag.ToCharArray();
+
+            
+
+            if (chars[0].Equals('1'))
+                sb.Append("Calc method : Float");
+            else
+                sb.Append("Calc method : Int");
+
+            sb.AppendLine();
+
+            if (chars[1].Equals('1'))
+                sb.Append("Overflow Yes");
+            else
+                sb.Append("Overflow No");
+
+            sb.AppendLine();
+
+            if ((chars[2].Equals('0')) && (chars[3].Equals('0')))
+                sb.Append("X or CVA");
+
+            if ((chars[2].Equals('0')) && (chars[3].Equals('1')))
+                sb.Append("Y");
+
+            if ((chars[2].Equals('1')) && (chars[3].Equals('0')))
+                sb.Append("Z");
+
+            sb.AppendLine();
+
+            
+            byte y = 0x0F;
+            int scaleFactor = 1;
+
+            scaleFactor = (int)(accByte & y);
+
+            sb.AppendFormat("Scale Factor : {0}", scaleFactor);
+            sb.AppendLine();
+
+
+            index += len;
+
+            //////////////////////
+            // Average 
+            len = 4;
+            subStr = payload.Substring(index, len);
+            int average = Convert.ToInt16(subStr, 16);
+            double averageDouble = Convert.ToDouble(average);
+            for (int i = 0; i < scaleFactor; i++)
+                averageDouble = averageDouble / 2;
+
+            averageDouble = averageDouble * 3.91;
+
+            sb.AppendFormat("Average {0}", Math.Round(averageDouble, 2));
+            sb.AppendLine();
+            
+            index += len;
+
+            //////////////////////
+            // STDEV 
+            len = 4;
+            subStr = payload.Substring(index, len);
+            int stdev = Convert.ToInt16(subStr, 16);
+            double stdevDouble = Convert.ToDouble(stdev);
+            for (int i = 0; i < scaleFactor; i++)
+                stdevDouble = stdevDouble / 2;
+
+            stdevDouble = stdevDouble * 3.91;
+
+            sb.AppendFormat("STDEV {0}", Math.Round(stdevDouble, 2));
+            sb.AppendLine();
+
+            index += len;
+
+
+            //////////////////////
+            // MIN 
+            len = 4;
+            subStr = payload.Substring(index, len);
+            int min = Convert.ToInt16(subStr, 16);
+            double minDouble = Convert.ToDouble(min);
+            for (int i = 0; i < scaleFactor; i++)
+                minDouble = minDouble / 2;
+
+            minDouble = minDouble * 3.91;
+
+            sb.AppendFormat("MIN {0}", Math.Round(minDouble, 2));
+            sb.AppendLine();
+
+            index += len;
+
+
+            //////////////////////
+            // MAX 
+            len = 4;
+            subStr = payload.Substring(index, len);
+            int max = Convert.ToInt16(subStr, 16);
+            double maxDouble = Convert.ToDouble(max);
+            for (int i = 0; i < scaleFactor; i++)
+                maxDouble = maxDouble / 2;
+
+            maxDouble = maxDouble * 3.91;
+
+            sb.AppendFormat("Max {0}", Math.Round(maxDouble, 2));
+            sb.AppendLine();
+
+            index += len;
+                        
+
+            if (version < 3)
+            {
+                // RSSI
+                len = 2;
+                subStr = payload.Substring(index, len);
+                int rssi = Convert.ToInt16(subStr, 16);
+                rssi = convertSignedByteToInt(rssi);
+                sb.AppendFormat("RSSI: {0} ", rssi);
+                sb.AppendLine();
+                index += len;
+
+            }
+
+            return sb.ToString();
+        }
+
+
+
         private String parsePowerOffErrorLog(String subStr)
         {
             StringBuilder sb = new StringBuilder();
@@ -1285,6 +1436,8 @@ namespace InoonLoRaParser.Upstream
 
             return sb.ToString();
         }
+
+
 
 
     }
