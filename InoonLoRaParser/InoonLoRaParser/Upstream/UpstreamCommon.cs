@@ -23,7 +23,7 @@ namespace InoonLoRaParser.Upstream
             0x6 | Data log - 단말기에서 수집한 센서 데이터를 서버로 전송
          * 
          * */
-        public enum UpPacketType { Unknown = 0, Alive = 1, Event, Error, Ack, Notice, DataLog, Report };
+        public enum UpPacketType { Unknown = 0, Alive = 1, Event, Error, Ack, Notice, DataLog, Report, AccelWaveform };
         public UpPacketType upPacketType;
 
         /*
@@ -271,6 +271,9 @@ namespace InoonLoRaParser.Upstream
                 case "7":
                     type = UpPacketType.Report;
                     break;
+                case "8":
+                    type = UpPacketType.AccelWaveform;
+                    break;
                 default:
                     type = UpPacketType.Unknown;
                     break;
@@ -306,6 +309,9 @@ namespace InoonLoRaParser.Upstream
                     break;
                 case "7":
                     type = "Report";
+                    break;
+                case "8":
+                    type = "AccelWaveform";
                     break;
                 default:
                     type = "Unknown";

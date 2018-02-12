@@ -36,8 +36,10 @@ namespace InoonLoRaParser.Upstream
                 res = parseDataLog(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.Report)
                 res = parseReport(pktStr, version);
+            else if (pktType == UpstreamCommon.UpPacketType.AccelWaveform)
+                res = parseAccelWaveform(pktStr, version);
             else
-                res = "Unknown packet";
+                res = "Unknown packet\n";
 
 
             return res; 
@@ -1437,6 +1439,87 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString();
         }
 
+
+        public string parseAccelWaveform(string payload, int version)
+        {
+            StringBuilder sb = new StringBuilder();
+            int index = 0;
+            String dataLogPayload;
+            String subStr;
+            int len = 2;
+            string payloadStr;
+
+            sb.Append("Accel Waveform");
+            sb.AppendLine();
+
+            // Trim whitespace
+            payload = payload.Trim();
+
+            // Axis_Data_Select
+            len = 1;
+            subStr = payload.Substring(index, len); // 
+
+            switch (subStr)
+            {
+                case "0":
+                    payloadStr = "XYZ";
+                    break;
+                case "1":
+                    payloadStr = "X";
+                    break;
+                case "2":
+                    payloadStr = "Y";
+                    break;
+                case "3":
+                    payloadStr = "Z";
+                    break;
+                default:
+                    payloadStr = "Unknown Axis_Data_Select message";
+                    break;
+            }
+
+            sb.AppendFormat("Axis_Data_Select: {0}", payloadStr);
+            sb.AppendLine();
+            index += len;
+
+            // Identification
+            len = 1;
+            subStr = payload.Substring(index, len); // 
+            
+            sb.AppendFormat("Identification: 0x{0}", subStr);
+            sb.AppendLine();
+            index += len;
+
+
+            // Data position               
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            switch (subStr)
+            {
+                case "00":
+                    payloadStr = "Start";
+                    break;
+                case "FF":
+                case "ff":
+                    payloadStr = "Finish";
+                    break;
+                default:
+                    payloadStr = "Intermediate 0x" + subStr;
+                    break;
+            }
+
+    
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+            // no contents
+            // no RSSI
+
+
+            return sb.ToString();
+        }
 
 
 
