@@ -16,6 +16,7 @@ namespace InoonLoRaParser.Upstream
         private const int aliveLengthVer3 = 50;
         private const int eventLengthVer1 = 6;
         private const int eventLengthVer2 = 10;
+        private const int eventLengthVer_inclination = 16;
 
         //parse application payload 
         public string parseApplicationPayload(UpstreamCommon.UpPacketType pktType, string pktStr, int version)
@@ -38,6 +39,8 @@ namespace InoonLoRaParser.Upstream
                 res = parseReport(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.AccelWaveform)
                 res = parseAccelWaveform(pktStr, version);
+            else if (pktType == UpstreamCommon.UpPacketType.Inclination)
+                res = parseInclination(pktStr, version);
             else
                 res = "Unknown packet\n";
 
@@ -637,7 +640,7 @@ namespace InoonLoRaParser.Upstream
 
             }
             // Version 2 
-            else if ((1 < version) && (eventLengthVer2 == strLen))
+            else if ((eventLengthVer2 == strLen) || (eventLengthVer_inclination == strLen))
             {
                 // Event type 
                 len = 2;
@@ -679,32 +682,41 @@ namespace InoonLoRaParser.Upstream
                 sb.AppendLine();
                 index += len;
 
-                // X axis 
-                len = 2;
-                subStr = payload.Substring(index, len);
-                int xnum = Convert.ToInt16(subStr, 16);                
-                sb.AppendFormat("Number of X axis interrupts: {0} ", xnum.ToString());
-                sb.AppendLine();
-                index += len;
+                if (eventString.Equals("High-G") || eventString.Equals("Collapse"))
+                {
+                    // X axis 
+                    len = 2;
+                    subStr = payload.Substring(index, len);
+                    int xnum = Convert.ToInt16(subStr, 16);
+                    sb.AppendFormat("Number of X axis interrupts: {0} ", xnum.ToString());
+                    sb.AppendLine();
+                    index += len;
 
 
-                // Y axis 
-                len = 2;
-                subStr = payload.Substring(index, len);
-                int ynum = Convert.ToInt16(subStr, 16);
-                sb.AppendFormat("Number of Y axis interrupts: {0} ", ynum.ToString());
-                sb.AppendLine();
-                index += len;
+                    // Y axis 
+                    len = 2;
+                    subStr = payload.Substring(index, len);
+                    int ynum = Convert.ToInt16(subStr, 16);
+                    sb.AppendFormat("Number of Y axis interrupts: {0} ", ynum.ToString());
+                    sb.AppendLine();
+                    index += len;
 
-                // Z axis 
-                len = 2;
-                subStr = payload.Substring(index, len);
-                int znum = Convert.ToInt16(subStr, 16);
-                sb.AppendFormat("Number of Z axis interrupts: {0} ", znum.ToString());
-                sb.AppendLine();
-                index += len;
+                    // Z axis 
+                    len = 2;
+                    subStr = payload.Substring(index, len);
+                    int znum = Convert.ToInt16(subStr, 16);
+                    sb.AppendFormat("Number of Z axis interrupts: {0} ", znum.ToString());
+                    sb.AppendLine();
+                    index += len;
 
+                }
+                else
+                {
 
+                    sb.AppendFormat("Unknown event type");
+                    sb.AppendLine();
+                }
+                
             }
             else
             {
@@ -1144,6 +1156,22 @@ namespace InoonLoRaParser.Upstream
                     case "0a":
                         sb.Append("PowerOffUninstalled (전원 꺼짐): 설치되지 않은 디바이스의 전송 횟수 초과로 전원 꺼짐");
                         break;
+                    case "0B":
+                    case "0b":
+                        sb.Append("PowerOffResetConfig (전원 꺼짐): RESET_CONFIG 통해 Configuration 정보를 reset 한 후 전원 꺼짐");
+                        break;
+                    case "0C":
+                    case "0c":
+                        sb.Append("PowerOffUninstallCommand (전원 꺼짐): Uninstall Command 수신하여 전원 꺼짐 (BLE or LoRa downstream)");
+                        break;
+                    case "0D":
+                    case "0d":
+                        sb.Append("PowerOffUninstallByReserved (전원 꺼짐): Uninstall Command 수신했으나 가속도 데이터 전송 완료 후 전원 꺼짐 (BLE or LoRa downstream)");
+                        break;
+                    case "0E":
+                    case "0e":
+                        sb.Append("PowerOffDeviceUpsideDown (전원 꺼짐): 자석으로 전원 켜진 후 15초 이내에 뒤집었을 때 전원 꺼짐  ");
+                        break;
                     case "81":
                         sb.Append("PowerOffResetFactorySetting (전원 리셋): Factory Setting 명령어 통해 전원 리셋");
                         break;
@@ -1449,7 +1477,7 @@ namespace InoonLoRaParser.Upstream
             int len = 2;
             string payloadStr;
 
-            sb.Append("Accel Waveform");
+            sb.Append("Acceleration Waveform");
             sb.AppendLine();
 
             // Trim whitespace
@@ -1478,7 +1506,7 @@ namespace InoonLoRaParser.Upstream
                     break;
             }
 
-            sb.AppendFormat("Axis_Data_Select: {0}", payloadStr);
+            sb.AppendFormat("Selected data axis: {0}", payloadStr);
             sb.AppendLine();
             index += len;
 
@@ -1522,6 +1550,51 @@ namespace InoonLoRaParser.Upstream
         }
 
 
+        public string parseInclination(string payload, int version)
+        {
+            StringBuilder sb = new StringBuilder();
+            int index = 0;
+            String subStr;
+            int len = 2;
+
+            sb.Append("Inclination");
+            sb.AppendLine();
+
+            // Trim whitespace
+            payload = payload.Trim();
+
+
+            // Inclination difference of X axis 
+            len = 4;
+            subStr = payload.Substring(index, len);
+            int xAngleDiff = Convert.ToInt16(subStr, 16);
+            double xdegree = ((double)xAngleDiff) / 100;
+            sb.AppendFormat("Diff. of X: {0} deg", xdegree.ToString("N2"));
+            sb.AppendLine();
+            index += len;
+
+
+            // Inclination difference of Y axis 
+            len = 4;
+            subStr = payload.Substring(index, len);
+            int yAngleDiff = Convert.ToInt16(subStr, 16);
+            double ydegree = ((double)yAngleDiff) / 100;
+            sb.AppendFormat("Diff. of Y: {0} deg", ydegree.ToString("N2"));
+            sb.AppendLine();
+            index += len;
+
+            // Inclination difference of Z axis 
+            len = 4;
+            subStr = payload.Substring(index, len);
+            int zAngleDiff = Convert.ToInt16(subStr, 16);
+            double zdegree = ((double)zAngleDiff) / 100;
+            sb.AppendFormat("Diff. of Z: {0} deg", zdegree.ToString("N2"));
+            sb.AppendLine();
+            index += len;
+
+            
+            return sb.ToString();
+        }
 
     }
 }

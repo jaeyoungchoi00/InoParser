@@ -13,7 +13,7 @@ namespace InoonLoRaParser.Upstream
 
         public enum DeviceType { Unknown = 0, ParkingPlex = 1, InoVibe = 2 };
         public DeviceType devType; // 
-         
+
         /*
          *  0x1 | Alive - 주기적 상태 전송
             0x2 | Event - 센서 값 변화, 배터리 부족 등의 이벤트 발생을 알림
@@ -21,9 +21,12 @@ namespace InoonLoRaParser.Upstream
             0x4 | Ack - 전송 후 응답이 필요한 제어 명령에 대한 Ack
             0x5 | Notice - 단말기에서 알리고자 하는 정보를 서버로 전달 (Power Up, Power Off, Reset)
             0x6 | Data log - 단말기에서 수집한 센서 데이터를 서버로 전송
+            0x7 | Report - 주기적으로 CVA 값 전송 : SK TechX 
+            0x8 | AccelWaveform - Datalog와 비슷. 3축 또는 1개 축을 선택 가능. 가속도 파형을 서버로 전송. 
+            0x9 | Inclination - 기울기 변화가 일정 threshold 를 넘으면 Inclination 패킷 전송. 
          * 
          * */
-        public enum UpPacketType { Unknown = 0, Alive = 1, Event, Error, Ack, Notice, DataLog, Report, AccelWaveform };
+        public enum UpPacketType { Unknown = 0, Alive = 1, Event, Error, Ack, Notice, DataLog, Report, AccelWaveform, Inclination };
         public UpPacketType upPacketType;
 
         /*
@@ -274,6 +277,9 @@ namespace InoonLoRaParser.Upstream
                 case "8":
                     type = UpPacketType.AccelWaveform;
                     break;
+                case "9":
+                    type = UpPacketType.Inclination;
+                    break;
                 default:
                     type = UpPacketType.Unknown;
                     break;
@@ -312,6 +318,9 @@ namespace InoonLoRaParser.Upstream
                     break;
                 case "8":
                     type = "AccelWaveform";
+                    break;
+                case "9":
+                    type = "Inclination";
                     break;
                 default:
                     type = "Unknown";
