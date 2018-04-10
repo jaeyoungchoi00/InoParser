@@ -778,6 +778,22 @@ namespace InoonLoRaParser.Upstream
                 case "05":
                     eventString = "LoraErrorOverReTxInfinite";
                     break;
+                case "06":
+                    eventString = "LoraErrorSkipHighG";
+                    break;
+                case "07":
+                    eventString = "LoraErrorFlashStoreFail";
+                    break;
+                case "08":
+                    eventString = "LoraErrorFlashLoadFail";
+                    break;
+                case "09":
+                    eventString = "LoraErrorFlashClearFail";
+                    break;
+                case "0a":
+                case "0A":
+                    eventString = "LoraErrorFlashUpdateFail";
+                    break;
                 default:
                     eventString = "LoraErrorUnknown";
                     break;
@@ -1362,7 +1378,7 @@ namespace InoonLoRaParser.Upstream
             int len = 2;
             StringBuilder sb = new StringBuilder();
 
-            // power off notice  
+            // setup notice 
 
             len = 2;
             subStr = payload.Substring(index, len);
@@ -1377,7 +1393,7 @@ namespace InoonLoRaParser.Upstream
                     payloadStr = "Install";
                     break;
                 case "02":
-                    payloadStr = "RequestInstall";
+                    payloadStr = "PrepareInstall";
                     break;
                 default:
                     payloadStr = "Unknown notice setup message";
