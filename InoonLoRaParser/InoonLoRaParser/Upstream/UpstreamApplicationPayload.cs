@@ -1166,7 +1166,7 @@ namespace InoonLoRaParser.Upstream
                         sb.Append("PowerOffBLERxCmdPowerOff (전원 꺼짐): BLE 통해 PowerOff 명령(0x92) 수신하여 전원 꺼짐");
                         break;
                     case "09":
-                        sb.Append("PowerOffLowBattery (전원 꺼짐): Low Battery 일 때 전원 꺼짐");
+                        sb.Append("PowerOffLowBattery (전원 꺼짐): Low battery 상태가 되어 전원 꺼짐");
                         break;
                     case "0A":
                     case "0a":
@@ -1174,7 +1174,7 @@ namespace InoonLoRaParser.Upstream
                         break;
                     case "0B":
                     case "0b":
-                        sb.Append("PowerOffResetConfig (전원 꺼짐): RESET_CONFIG 통해 Configuration 정보를 reset 한 후 전원 꺼짐");
+                        sb.Append("PowerOffInitConfigOff (전원 꺼짐): INIT_CONFIG_OFF 통해 Configuration 정보를 reset 한 후 전원 꺼짐");
                         break;
                     case "0C":
                     case "0c":
@@ -1182,7 +1182,7 @@ namespace InoonLoRaParser.Upstream
                         break;
                     case "0D":
                     case "0d":
-                        sb.Append("PowerOffUninstallByReserved (전원 꺼짐): Uninstall Command 수신했으나 가속도 데이터 전송 완료 후 전원 꺼짐 (BLE or LoRa downstream)");
+                        sb.Append("PowerOffUninstallByReserved (전원 꺼짐): Uninstall Command 수신한 이후, 가속도 데이터 전송 완료 후 전원 꺼짐 (BLE or LoRa downstream)");
                         break;
                     case "0E":
                     case "0e":
@@ -1211,6 +1211,13 @@ namespace InoonLoRaParser.Upstream
                         break;
                     case "88":
                         sb.Append("PowerOffResetSoluMFWUpgrade (전원 리셋): SoluM FW upgrade 후 전원 리셋");
+                        break;
+                    case "89":
+                        sb.Append("PowerOffResetInitConfigReset (전원 리셋): BLE로 Init_config_reset 명령 수신하여 전원 리셋 ");
+                        break;
+                    case "8a":
+                    case "8A":
+                        sb.Append("PowerOffResetPowerUpNoticeFail (전원 리셋): PowerUp Notice 전송 실패하여 전원 리셋  ");
                         break;
                     default:
                         sb.Append("Unknown power off reason");
