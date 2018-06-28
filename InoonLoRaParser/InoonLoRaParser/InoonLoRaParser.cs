@@ -45,7 +45,8 @@ namespace InoonLoRaParser
                 
                 String payloadStr = upInputStr.Substring(headerLength);
                 UpstreamApplicationPayload uap = new UpstreamApplicationPayload();
-                tbUpstreamApplicationPayload.Text = uap.parseApplicationPayload(uc.upPacketType, payloadStr, uc.versionNumber);
+                //tbUpstreamApplicationPayload.Text = uap.parseApplicationPayload(uc.upPacketType, payloadStr, uc.versionNumber);
+                tbUpstreamApplicationPayload.Text = uap.parseApplicationPayload(uc.upPacketType, payloadStr, uc.versionNumber, uc.devType);
 
                 // Checksum 
                 String fcsResult = compareFCS(upInputStr, uc.versionNumber);
@@ -264,7 +265,7 @@ namespace InoonLoRaParser
         private Double convertSensorData(string org)
         {
             
-            Double scale = UpstreamApplicationPayload.accScale; // 3.91 mg for 2G range. 7.81 for 4G range   
+            Double scale = UpstreamApplicationPayload.accScale10bit; // 3.91 mg for 2G range. 7.81 for 4G range   
             int sensorData = Convert.ToInt16(org, 16);
             Double convData = scale * (Double)sensorData;
             return convData;            

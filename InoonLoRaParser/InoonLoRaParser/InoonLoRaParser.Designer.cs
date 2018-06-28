@@ -94,7 +94,7 @@
             this.gbContents.Controls.Add(this.tbUpstreamCommon);
             this.gbContents.Location = new System.Drawing.Point(13, 83);
             this.gbContents.Name = "gbContents";
-            this.gbContents.Size = new System.Drawing.Size(271, 440);
+            this.gbContents.Size = new System.Drawing.Size(271, 483);
             this.gbContents.TabIndex = 1;
             this.gbContents.TabStop = false;
             this.gbContents.Text = "Contents";
@@ -102,7 +102,7 @@
             // lbApplicationPayload
             // 
             this.lbApplicationPayload.AutoSize = true;
-            this.lbApplicationPayload.Location = new System.Drawing.Point(11, 191);
+            this.lbApplicationPayload.Location = new System.Drawing.Point(11, 187);
             this.lbApplicationPayload.Name = "lbApplicationPayload";
             this.lbApplicationPayload.Size = new System.Drawing.Size(117, 12);
             this.lbApplicationPayload.TabIndex = 6;
@@ -110,17 +110,17 @@
             // 
             // tbUpstreamApplicationPayload
             // 
-            this.tbUpstreamApplicationPayload.Location = new System.Drawing.Point(10, 206);
+            this.tbUpstreamApplicationPayload.Location = new System.Drawing.Point(10, 202);
             this.tbUpstreamApplicationPayload.Multiline = true;
             this.tbUpstreamApplicationPayload.Name = "tbUpstreamApplicationPayload";
             this.tbUpstreamApplicationPayload.ReadOnly = true;
-            this.tbUpstreamApplicationPayload.Size = new System.Drawing.Size(250, 225);
+            this.tbUpstreamApplicationPayload.Size = new System.Drawing.Size(250, 270);
             this.tbUpstreamApplicationPayload.TabIndex = 5;
             // 
             // lbCommon
             // 
             this.lbCommon.AutoSize = true;
-            this.lbCommon.Location = new System.Drawing.Point(13, 26);
+            this.lbCommon.Location = new System.Drawing.Point(13, 21);
             this.lbCommon.Name = "lbCommon";
             this.lbCommon.Size = new System.Drawing.Size(57, 12);
             this.lbCommon.TabIndex = 4;
@@ -128,7 +128,7 @@
             // 
             // tbUpstreamCommon
             // 
-            this.tbUpstreamCommon.Location = new System.Drawing.Point(10, 41);
+            this.tbUpstreamCommon.Location = new System.Drawing.Point(10, 36);
             this.tbUpstreamCommon.Multiline = true;
             this.tbUpstreamCommon.Name = "tbUpstreamCommon";
             this.tbUpstreamCommon.ReadOnly = true;
@@ -140,7 +140,7 @@
             this.gbAliveXYZ.Controls.Add(this.label1);
             this.gbAliveXYZ.Controls.Add(this.tbSensorData);
             this.gbAliveXYZ.Controls.Add(this.btnOpenAliveMsgFile);
-            this.gbAliveXYZ.Location = new System.Drawing.Point(13, 531);
+            this.gbAliveXYZ.Location = new System.Drawing.Point(13, 579);
             this.gbAliveXYZ.Name = "gbAliveXYZ";
             this.gbAliveXYZ.Size = new System.Drawing.Size(269, 56);
             this.gbAliveXYZ.TabIndex = 2;
@@ -177,7 +177,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(297, 594);
+            this.ClientSize = new System.Drawing.Size(297, 641);
             this.Controls.Add(this.gbAliveXYZ);
             this.Controls.Add(this.gbContents);
             this.Controls.Add(this.gbUpstream);

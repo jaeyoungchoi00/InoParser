@@ -10,7 +10,9 @@ namespace InoonLoRaParser.Upstream
     public class UpstreamApplicationPayload
     {
 
-        public const Double accScale = 3.91; //mg for 2G range. 7.81 for 4G range   
+        public const Double accScale10bit = 1000.0 / 256.0; //3.91; //mg for 2G range. 10bit for BMA250e   
+        public const Double accScale14bit = 1000.0 / 4096.0; //0.244; //mg for 2G range. 14bit BMA280 
+
         private const int aliveLengthVer1 = 14;
         private const int aliveLengthVer2 = 50;
         private const int aliveLengthVer3 = 50;
@@ -23,8 +25,18 @@ namespace InoonLoRaParser.Upstream
         {
             string res = String.Empty;
 
+            res = parseApplicationPayload(pktType, pktStr, version, UpstreamCommon.DeviceType.InoVibe_MGI100);
+
+            return res; 
+        }
+
+        //parse application payload 
+        public string parseApplicationPayload(UpstreamCommon.UpPacketType pktType, string pktStr, int version, UpstreamCommon.DeviceType devType)
+        {
+            string res = String.Empty;
+
             if (pktType == UpstreamCommon.UpPacketType.Alive)
-                res = parseAlive(pktStr, version);
+                res = parseAlive(pktStr, version, devType);
             else if (pktType == UpstreamCommon.UpPacketType.Event)
                 res = parseEvent(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.Error)
@@ -36,25 +48,43 @@ namespace InoonLoRaParser.Upstream
             else if (pktType == UpstreamCommon.UpPacketType.DataLog)
                 res = parseDataLog(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.Report)
-                res = parseReport(pktStr, version);
+                res = parseReport(pktStr, version, devType);
             else if (pktType == UpstreamCommon.UpPacketType.AccelWaveform)
                 res = parseAccelWaveform(pktStr, version);
             else if (pktType == UpstreamCommon.UpPacketType.Inclination)
                 res = parseInclination(pktStr, version);
+            else if (pktType == UpstreamCommon.UpPacketType.MachineRuntimeMeasurement)
+                res = parseMachineRuntimeMeasurement(pktStr, version, devType);
+            else if (pktType == UpstreamCommon.UpPacketType.MachineRuntimeReport)
+                res = parseMachineRuntimeReport(pktStr, version, devType);
             else
                 res = "Unknown packet\n";
 
 
-            return res; 
+            return res;
         }
 
+
         public string parseAlive(string payload, int version)
+        {            
+            return parseAlive(payload, version, UpstreamCommon.DeviceType.InoVibe_MGI100); 
+        }
+
+
+        public string parseAlive(string payload, int version, UpstreamCommon.DeviceType devType)
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;
             String subStr;
             int len = 2;
-            int strLen = 0; 
+            int strLen = 0;
+            Double accScaleDevType; 
+            
+            if (devType == UpstreamCommon.DeviceType.InoVibe_MGI100N) // BMA280 added 
+                accScaleDevType = accScale14bit;
+            else //No other device type yet 
+                accScaleDevType = accScale10bit;
+
 
             sb.Append("Alive");
             sb.AppendLine();
@@ -71,7 +101,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int xaxis = Convert.ToInt16(subStr, 16);
-                Double xconv = accScale * (Double)xaxis;
+                Double xconv = accScaleDevType * (Double)xaxis;
                 sb.AppendFormat("X axis: {0:N1} mg", xconv);
                 sb.AppendLine();
                 index += len;
@@ -81,7 +111,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int yaxis = Convert.ToInt16(subStr, 16);
-                Double yconv = accScale * (Double)yaxis;
+                Double yconv = accScaleDevType * (Double)yaxis;
                 sb.AppendFormat("Y axis: {0:N1} mg", yconv);
                 sb.AppendLine();
                 index += len;
@@ -90,7 +120,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int zaxis = Convert.ToInt16(subStr, 16);
-                Double zconv = accScale * (Double)zaxis;
+                Double zconv = accScaleDevType * (Double)zaxis;
                 sb.AppendFormat("Z axis: {0:N1} mg", zconv);
                 sb.AppendLine();
                 index += len;
@@ -111,7 +141,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int xaxis = Convert.ToInt16(subStr, 16);
-                Double xconv = accScale * (Double)xaxis;
+                Double xconv = accScaleDevType * (Double)xaxis;
                 sb.AppendFormat("X axis: {0:N1} mg", xconv);
                 sb.AppendLine();
                 index += len;
@@ -121,7 +151,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int yaxis = Convert.ToInt16(subStr, 16);
-                Double yconv = accScale * (Double)yaxis;
+                Double yconv = accScaleDevType * (Double)yaxis;
                 sb.AppendFormat("Y axis: {0:N1} mg", yconv);
                 sb.AppendLine();
                 index += len;
@@ -130,7 +160,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int zaxis = Convert.ToInt16(subStr, 16);
-                Double zconv = accScale * (Double)zaxis;
+                Double zconv = accScaleDevType * (Double)zaxis;
                 sb.AppendFormat("Z axis: {0:N1} mg", zconv);
                 sb.AppendLine();
                 index += len;
@@ -329,7 +359,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int xaxis = Convert.ToInt16(subStr, 16);
-                Double xconv = accScale * (Double)xaxis;
+                Double xconv = accScale10bit * (Double)xaxis;
                 sb.AppendFormat("X axis: {0:N1} mg", xconv);
                 sb.AppendLine();
                 index += len;
@@ -339,7 +369,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int yaxis = Convert.ToInt16(subStr, 16);
-                Double yconv = accScale * (Double)yaxis;
+                Double yconv = accScaleDevType * (Double)yaxis;
                 sb.AppendFormat("Y axis: {0:N1} mg", yconv);
                 sb.AppendLine();
                 index += len;
@@ -348,7 +378,7 @@ namespace InoonLoRaParser.Upstream
                 len = 4;
                 subStr = payload.Substring(index, len);
                 int zaxis = Convert.ToInt16(subStr, 16);
-                Double zconv = accScale * (Double)zaxis;
+                Double zconv = accScaleDevType * (Double)zaxis;
                 sb.AppendFormat("Z axis: {0:N1} mg", zconv);
                 sb.AppendLine();
                 index += len;
@@ -983,14 +1013,24 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString();
         }
 
-
         public string parseReport(string payload, int version)
+        {
+            return parseReport(payload, version, UpstreamCommon.DeviceType.InoVibe_MGI100);
+        }
+
+        public string parseReport(string payload, int version, UpstreamCommon.DeviceType devType)
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;
-            String noticeType;
+            //String noticeType;
             String subStr;
             int len = 2;
+            double acc_adapt_num; // For BMA250e
+
+            if (devType == UpstreamCommon.DeviceType.InoVibe_MGI100N)
+                acc_adapt_num = accScale14bit; 
+            else
+                acc_adapt_num = accScale10bit;
 
             sb.Append("Report");
             sb.AppendLine();
@@ -1057,9 +1097,9 @@ namespace InoonLoRaParser.Upstream
             for (int i = 0; i < scaleFactor; i++)
                 averageDouble = averageDouble / 2;
 
-            averageDouble = averageDouble * 3.91;
+            averageDouble = averageDouble * acc_adapt_num;
 
-            sb.AppendFormat("Average {0}", Math.Round(averageDouble, 2));
+            sb.AppendFormat("Average {0} (mg)", Math.Round(averageDouble, 2));
             sb.AppendLine();
             
             index += len;
@@ -1073,9 +1113,9 @@ namespace InoonLoRaParser.Upstream
             for (int i = 0; i < scaleFactor; i++)
                 stdevDouble = stdevDouble / 2;
 
-            stdevDouble = stdevDouble * 3.91;
+            stdevDouble = stdevDouble * acc_adapt_num;
 
-            sb.AppendFormat("STDEV {0}", Math.Round(stdevDouble, 2));
+            sb.AppendFormat("STDEV {0} (mg)", Math.Round(stdevDouble, 2));
             sb.AppendLine();
 
             index += len;
@@ -1090,9 +1130,9 @@ namespace InoonLoRaParser.Upstream
             for (int i = 0; i < scaleFactor; i++)
                 minDouble = minDouble / 2;
 
-            minDouble = minDouble * 3.91;
+            minDouble = minDouble * acc_adapt_num;
 
-            sb.AppendFormat("MIN {0}", Math.Round(minDouble, 2));
+            sb.AppendFormat("MIN {0} (mg)", Math.Round(minDouble, 2));
             sb.AppendLine();
 
             index += len;
@@ -1107,10 +1147,10 @@ namespace InoonLoRaParser.Upstream
             for (int i = 0; i < scaleFactor; i++)
                 maxDouble = maxDouble / 2;
 
-            maxDouble = maxDouble * 3.91;
+            maxDouble = maxDouble * acc_adapt_num;
 
-            sb.AppendFormat("Max {0}", Math.Round(maxDouble, 2));
-            sb.AppendLine();
+            sb.AppendFormat("Max {0} (mg)", Math.Round(maxDouble, 2));
+            //sb.AppendLine();
 
             index += len;
                         
@@ -1122,6 +1162,7 @@ namespace InoonLoRaParser.Upstream
                 subStr = payload.Substring(index, len);
                 int rssi = Convert.ToInt16(subStr, 16);
                 rssi = convertSignedByteToInt(rssi);
+                sb.AppendLine();
                 sb.AppendFormat("RSSI: {0} ", rssi);
                 sb.AppendLine();
                 index += len;
@@ -1495,7 +1536,7 @@ namespace InoonLoRaParser.Upstream
         {
             StringBuilder sb = new StringBuilder();
             int index = 0;
-            String dataLogPayload;
+            //String dataLogPayload;
             String subStr;
             int len = 2;
             string payloadStr;
@@ -1616,6 +1657,211 @@ namespace InoonLoRaParser.Upstream
             index += len;
 
             
+            return sb.ToString();
+        }
+
+        public string parseMachineRuntimeMeasurement(string payload, int version, UpstreamCommon.DeviceType devType)
+        {
+            StringBuilder sb = new StringBuilder();
+            int index = 0;
+            String subStr;
+            int len = 2;
+
+            sb.Append("Machine Runtime Measurement");
+            sb.AppendLine();
+
+            // Trim whitespace
+            payload = payload.Trim();
+
+
+            // Protocol Version 
+            len = 1 * 2;
+            subStr = payload.Substring(index, len);
+            int protocolVersion = Convert.ToUInt16(subStr, 16);      
+            sb.AppendFormat("Protocol Version: {0}", protocolVersion.ToString());
+            sb.AppendLine();
+            index += len;
+
+
+            // Machine state  
+            len = 1 * 2;
+            subStr = payload.Substring(index, len);
+
+            string payloadStr;
+            switch (subStr)
+            {
+                case "00":
+                    payloadStr = "Commissioning State";
+                    break;
+                case "01":
+                    payloadStr = "Inactive State";
+                    break;
+                case "02":
+                    payloadStr = "Active State";
+                    break;
+                default:
+                    payloadStr = "Unknown state";
+                    break;
+            }
+
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+
+            // Parse machine report period 
+            len = 1 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 mrtReportPeriod = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Report Period: {0} min", mrtReportPeriod);
+            sb.AppendLine();
+
+            index += len;
+
+
+            // Parse REPORT packet as device type 
+            len = 9 * 2;
+            subStr = payload.Substring(index, len);            
+            payloadStr = parseReport(subStr, version, devType);
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+
+            // Parse machine runtime duration 
+            len = 2 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 mrtRuntimeDuration = Convert.ToUInt16(subStr, 16);          
+            sb.AppendFormat("Runtime Duration: {0} min", mrtRuntimeDuration);
+            sb.AppendLine();
+
+            index += len;
+
+            // Parse machine operation threshold 
+            len = 2 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 mrtOperationThreshold = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Operation Threshold: {0} mg", mrtOperationThreshold);
+            sb.AppendLine();
+
+            index += len;
+
+
+            // Parse machine shock threshold 
+            len = 2 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 mrtShockThreshold = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Shock Threshold: {0} mg", mrtShockThreshold);
+            sb.AppendLine();
+
+            index += len;
+
+
+            // Parse machine timestamp 
+            len = 4 * 2;
+            subStr = payload.Substring(index, len);
+            UInt32 mrtTimestamp = Convert.ToUInt32(subStr, 16);
+            sb.AppendFormat("Timestamp: {0}", mrtTimestamp);
+            sb.AppendLine();
+
+            index += len;
+
+
+            // Parse battery level 
+            len = 1 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 batt_level = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Battery level: {0} %", batt_level);
+            sb.AppendLine();
+
+            index += len;
+
+
+            // Parse accelerometer status 
+            len = 1 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 acc_status = Convert.ToUInt16(subStr, 16);
+            if (acc_status == 1)
+                sb.AppendFormat("Accelerometer status OK");
+            else
+                sb.AppendFormat("Accelerometer status FAIL");
+
+            sb.AppendLine();
+
+            index += len;
+
+
+            // reserved  
+            len = 4 * 2;
+            subStr = payload.Substring(index, len);
+            sb.AppendFormat("Reserved {0}", subStr);
+            sb.AppendLine();
+
+            index += len;
+            
+            return sb.ToString();
+        }
+
+        public string parseMachineRuntimeReport(string payload, int version, UpstreamCommon.DeviceType devType)
+        {
+            StringBuilder sb = new StringBuilder();
+            int index = 0;
+            String subStr;
+            int len = 2;
+
+            sb.Append("Machine Runtime Report");
+            sb.AppendLine();
+
+            // Trim whitespace
+            payload = payload.Trim();
+
+
+            // Protocol Version 
+            len = 1 * 2;
+            subStr = payload.Substring(index, len);
+            int protocolVersion = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Protocol Version: {0}", protocolVersion.ToString());
+            sb.AppendLine();
+            index += len;
+
+
+            // Parse battery level 
+            len = 1 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 batt_level = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Battery level: {0} %", batt_level);
+            sb.AppendLine();
+
+            index += len;
+
+
+            // Parse accumulated machine runtime duration 
+            len = 2 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 mrtAccRuntimeDuration = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Accumulated Runtime: {0} min.", mrtAccRuntimeDuration);
+            sb.AppendLine();
+
+            index += len;
+
+            // Parse runtime observation duration  
+            len = 2 * 2;
+            subStr = payload.Substring(index, len);
+            UInt16 mrtRuntimeObservationTime = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Runtime Observation Time: {0} min.", mrtRuntimeObservationTime);
+            sb.AppendLine();
+
+            index += len;
+            
+
+            // reserved  
+            len = 2 * 2;
+            subStr = payload.Substring(index, len);
+            sb.AppendFormat("Reserved {0}", subStr);
+            sb.AppendLine();
+
+            index += len;
+
             return sb.ToString();
         }
 

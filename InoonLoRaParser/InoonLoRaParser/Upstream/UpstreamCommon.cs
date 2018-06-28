@@ -11,7 +11,7 @@ namespace InoonLoRaParser.Upstream
         //public String version; // default 1 
         public int versionNumber; // default 1 
 
-        public enum DeviceType { Unknown = 0, ParkingPlex = 1, InoVibe = 2 };
+        public enum DeviceType { Unknown = 0, ParkingPlex = 1, InoVibe_MGI100 = 2, InoVibe_MGI100N, InoVibe_MGI500 };
         public DeviceType devType; // 
 
         /*
@@ -24,9 +24,26 @@ namespace InoonLoRaParser.Upstream
             0x7 | Report - 주기적으로 CVA 값 전송 : SK TechX 
             0x8 | AccelWaveform - Datalog와 비슷. 3축 또는 1개 축을 선택 가능. 가속도 파형을 서버로 전송. 
             0x9 | Inclination - 기울기 변화가 일정 threshold 를 넘으면 Inclination 패킷 전송. 
+            0xA | Machine Runtime Measurement- Machine runtime monitoring. 시설 설비 운전 시간 전송  
+            0xB | Machine Runtime Report- Machine runtime monitoring. 1일 1회, 하루 동안 설비 운전시간의 합을 전송  
          * 
          * */
-        public enum UpPacketType { Unknown = 0, Alive = 1, Event, Error, Ack, Notice, DataLog, Report, AccelWaveform, Inclination };
+        public enum UpPacketType
+        {
+            Unknown     = 0,
+            Alive       = 1,
+            Event,
+            Error,
+            Ack,
+            Notice,
+            DataLog,
+            Report,
+            AccelWaveform,
+            Inclination,
+            MachineRuntimeMeasurement,
+            MachineRuntimeReport,
+            TxTest = 0xFF
+        };
         public UpPacketType upPacketType;
 
         /*
@@ -227,7 +244,11 @@ namespace InoonLoRaParser.Upstream
             if ((subStr.Equals("0001")) || (subStr.Equals("01")))
                 devType = DeviceType.ParkingPlex;
             else if ((subStr.Equals("0002")) || (subStr.Equals("02")))
-                devType = DeviceType.InoVibe;
+                devType = DeviceType.InoVibe_MGI100;
+            else if ((subStr.Equals("0003")) || (subStr.Equals("03")))
+                devType = DeviceType.InoVibe_MGI100N;
+            else if ((subStr.Equals("0004")) || (subStr.Equals("04")))
+                devType = DeviceType.InoVibe_MGI500;
             else
                 devType = DeviceType.Unknown;
 
@@ -241,7 +262,11 @@ namespace InoonLoRaParser.Upstream
             if ((subStr.Equals("0001")) || (subStr.Equals("01")))
                 str = "ParkingPlex";
             else if ((subStr.Equals("0002")) || (subStr.Equals("02")))
-                str = "Ino-Vibe";
+                str = "Ino-Vibe_MGI100";
+            else if ((subStr.Equals("0003")) || (subStr.Equals("03")))
+                str = "Ino-Vibe_MGI100N";
+            else if ((subStr.Equals("0004")) || (subStr.Equals("04")))
+                str = "Ino-Vibe_MGI500";
             else
                 str = "Unknown device type";
 
@@ -279,6 +304,14 @@ namespace InoonLoRaParser.Upstream
                     break;
                 case "9":
                     type = UpPacketType.Inclination;
+                    break;
+                case "a":
+                case "A":
+                    type = UpPacketType.MachineRuntimeMeasurement;
+                    break;
+                case "b":
+                case "B":
+                    type = UpPacketType.MachineRuntimeReport;
                     break;
                 default:
                     type = UpPacketType.Unknown;
@@ -321,6 +354,14 @@ namespace InoonLoRaParser.Upstream
                     break;
                 case "9":
                     type = "Inclination";
+                    break;
+                case "a":
+                case "A":
+                    type = "MachineRuntimeMeasurement";
+                    break;
+                case "b":
+                case "B":
+                    type = "MachineRuntimeReport";
                     break;
                 default:
                     type = "Unknown";
