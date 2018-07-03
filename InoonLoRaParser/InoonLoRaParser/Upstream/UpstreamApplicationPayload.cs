@@ -1227,7 +1227,11 @@ namespace InoonLoRaParser.Upstream
                         break;
                     case "0E":
                     case "0e":
-                        sb.Append("PowerOffDeviceUpsideDown (전원 꺼짐): 자석으로 전원 켜진 후 15초 이내에 뒤집었을 때 전원 꺼짐  ");
+                        sb.Append("PowerOffDeviceUpsideDown (전원 꺼짐): 자석으로 전원 켜진 후 15초 이내에 뒤집었을 때 전원 꺼짐");
+                        break;
+                    case "0F":
+                    case "0f":
+                        sb.Append("PowerOffUninstallTimeout (전원 꺼짐): Uninstall 상테에서 10분 경과하면 자동으로 전원이 꺼진다.");
                         break;
                     case "81":
                         sb.Append("PowerOffResetFactorySetting (전원 리셋): Factory Setting 명령어 통해 전원 리셋");
@@ -1260,6 +1264,22 @@ namespace InoonLoRaParser.Upstream
                     case "8A":
                         sb.Append("PowerOffResetPowerUpNoticeFail (전원 리셋): PowerUp Notice 전송 실패하여 전원 리셋  ");
                         break;
+                    case "8b":
+                    case "8B":
+                        sb.Append("PowerOffResetPeriodicParamChanged (전원 리셋): Periodic report parameters are changed");
+                        break;
+                    case "8c":
+                    case "8C":
+                        sb.Append("PowerOffResetInclinationParamChanged (전원 리셋): Inclination monitoring parameters are changed");
+                        break;
+                    case "8d":
+                    case "8D":
+                        sb.Append("PowerOffResetMachineRuntimeConfigChanged (전원 리셋): Machine runtime configuration values are changed");
+                        break;
+                    case "8e":
+                    case "8E":
+                        sb.Append("PowerOffResetLoRaRetransmissionFail (전원 리셋): LoRa Transmission fail multiple times in AS923");
+                        break;                    
                     default:
                         sb.Append("Unknown power off reason");
                         break;
