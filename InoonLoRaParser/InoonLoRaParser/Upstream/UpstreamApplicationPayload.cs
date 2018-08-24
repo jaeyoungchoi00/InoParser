@@ -942,6 +942,9 @@ namespace InoonLoRaParser.Upstream
                 case "04":
                     notiString = "Setup (BLE)";
                     break;
+                case "05":
+                    notiString = "Test Result";
+                    break;
                 case "FF":
                     notiString = "String. Not yet supported.";
                     break;
@@ -985,6 +988,9 @@ namespace InoonLoRaParser.Upstream
                     break;
                 case "04":
                     notiString = parseNoticeSetup(subStr); // Uninstall / install 
+                    break;
+                case "05":
+                    notiString = parseNoticeTestResult(subStr); 
                     break;
                 case "FF":
                     notiString = "String payload. Not yet supported.";
@@ -1279,7 +1285,23 @@ namespace InoonLoRaParser.Upstream
                     case "8e":
                     case "8E":
                         sb.Append("PowerOffResetLoRaRetransmissionFail (전원 리셋): LoRa Transmission fail multiple times in AS923");
-                        break;                    
+                        break;
+                    case "8f":
+                    case "8F":
+                        sb.Append("PowerOffResetInfResetTest (전원 리셋): 무한 리셋 테스트");
+                        break;
+                    case "90":
+                        sb.Append("PowerOffResetAccWaveformTxTimeout (전원 리셋): Waveform 전송 중 정해진 시간 안에 종료되지 않음");
+                        break;
+                    case "91":
+                        sb.Append("PowerOffResetLoRaJoinFail (전원 리셋): Install 상태에서 LoRa Join 실패 시 Power off 대신 Reset");
+                        break;
+                    case "92":
+                        sb.Append("PowerOffResetATSENDNOK (전원 리셋): AT+SEND NOK가 연속 8회 발생 시 Device reset");
+                        break;
+                    case "93":
+                        sb.Append("PowerOffResetLoRaModuleAbnormalReset (전원 리셋): nRF 동작 중인데 LoRa 모듈만 Reset 된 경우를 가정");
+                        break;
                     default:
                         sb.Append("Unknown power off reason");
                         break;
@@ -1469,6 +1491,154 @@ namespace InoonLoRaParser.Upstream
             }
 
             sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+            return sb.ToString();
+        }
+
+
+        public string parseNoticeTestResult(string payload)
+        {
+            String subStr = String.Empty;
+            int index = 0;
+            int len = 2;
+            StringBuilder sb = new StringBuilder();
+
+            // parse notice test result  
+            // Enable flag 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            string payloadStr;
+            switch (subStr)
+            {
+                case "00":
+                    payloadStr = "Disable";
+                    break;
+                case "01":
+                    payloadStr = "Enable";
+                    break;
+                default:
+                    payloadStr = "Unknown notice enable field";
+                    break;
+            }
+
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+
+            // Test command 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            switch (subStr)
+            {
+                case "00":
+                    payloadStr = "None";
+                    break;
+                case "01":
+                    payloadStr = "Waveform test";
+                    break;
+                case "02":
+                    payloadStr = "Alive test";
+                    break;
+                case "03":
+                    payloadStr = "Reset test";
+                    break;
+                case "04":
+                    payloadStr = "Watchdog test";
+                    break;
+                case "05":
+                    payloadStr = "Inclination test";
+                    break;
+                case "06":
+                    payloadStr = "Runtime test";
+                    break;
+                default:
+                    payloadStr = "Unknown Test command field";
+                    break;
+            }
+
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+
+            // Test Count Limit
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int testCountLimit = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Limit: {0}", testCountLimit.ToString());
+
+            sb.AppendLine();
+            index += len;
+
+            
+
+            // Move to next flag             
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            switch (subStr)
+            {
+                case "00":
+                    payloadStr = "Move to next False. Unit test";
+                    break;
+                case "01":
+                    payloadStr = "Move to next TRUE. Test all.";
+                    break;
+                default:
+                    payloadStr = "Unknown MoveToNext field";
+                    break;
+            }
+
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+
+            // CurrentCount            
+            len = 2;
+            subStr = payload.Substring(index, len);
+            
+            int currentCount = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Current Count: {0}", currentCount.ToString());
+
+            sb.AppendLine();
+            index += len;
+
+
+            // Test running flag             
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            switch (subStr)
+            {
+                case "00":
+                    payloadStr = "TestManager is not running";
+                    break;
+                case "01":
+                    payloadStr = "TestManager is running";
+                    break;
+                default:
+                    payloadStr = "Unknown TestManager Running field";
+                    break;
+            }
+
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+
+            // Reserved           
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            sb.AppendFormat("Reserved: {0}", subStr);
+
             sb.AppendLine();
             index += len;
 
