@@ -824,6 +824,14 @@ namespace InoonLoRaParser.Upstream
                 case "0A":
                     eventString = "LoraErrorFlashUpdateFail";
                     break;
+                case "0b":
+                case "0B":
+                    eventString = "LoraErrorPowerFailure";
+                    break;
+                case "0c":
+                case "0C":
+                    eventString = "LoraErrorBeaconStartFail";
+                    break;
                 default:
                     eventString = "LoraErrorUnknown";
                     break;
@@ -1301,6 +1309,9 @@ namespace InoonLoRaParser.Upstream
                         break;
                     case "93":
                         sb.Append("PowerOffResetLoRaModuleAbnormalReset (전원 리셋): nRF 동작 중인데 LoRa 모듈만 Reset 된 경우를 가정");
+                        break;
+                    case "94":
+                        sb.Append("PowerOffResetAliveFailed (전원 리셋): Alive msg transmission is failed for 2 times");
                         break;
                     default:
                         sb.Append("Unknown power off reason");
