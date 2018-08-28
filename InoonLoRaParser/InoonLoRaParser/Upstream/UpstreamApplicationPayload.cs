@@ -1344,7 +1344,7 @@ namespace InoonLoRaParser.Upstream
 
             /////////////////////////////////
             // Parse reset reason 
-            sb.Append("Reset Reason : ");
+            sb.Append("Reset Reason: ");
 
             len = 2;
             subStr = payload.Substring(index, len);
@@ -1392,15 +1392,26 @@ namespace InoonLoRaParser.Upstream
             sb.AppendLine();
             index += len;
 
+            /////////////////////////////////
+            // Turn on count 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int turnOnCnt = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Turn-on count: {0}", turnOnCnt.ToString());
+            sb.AppendLine();
+
+            index += len;
+
             ////////////////////////////////////////
             // skip reserved field 
 
-            index += len; //skip 2nd byte 
+            //index += len; //skip 2nd byte 
             index += len; //skip 3rd byte 
 
             /////////////////////////////////
             // Parse Error log 
-            sb.Append("Power Off Error Log : ");
+            sb.Append("Power Off Error Log: ");
 
             subStr = payload.Substring(index, len);
 
