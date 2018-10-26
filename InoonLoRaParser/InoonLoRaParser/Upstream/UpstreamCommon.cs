@@ -226,9 +226,11 @@ namespace InoonLoRaParser.Upstream
 
 
                 // Reserved 
+                // Minimum mV 
                 len = 4;
-                subStr = inputStr.Substring(index, len); 
-                sb.AppendFormat("Reserved: {0}", subStr);
+                subStr = inputStr.Substring(index, len);
+                int minimumVoltage = Convert.ToInt16(subStr, 16);
+                sb.AppendFormat("Reserved / mV: {0}", minimumVoltage);
                 sb.AppendLine();
                 index += len;
 

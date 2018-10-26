@@ -953,6 +953,9 @@ namespace InoonLoRaParser.Upstream
                 case "05":
                     notiString = "Test Result";
                     break;
+                case "06":
+                    notiString = "Rejection Count";
+                    break;
                 case "FF":
                     notiString = "String. Not yet supported.";
                     break;
@@ -999,6 +1002,9 @@ namespace InoonLoRaParser.Upstream
                     break;
                 case "05":
                     notiString = parseNoticeTestResult(subStr); 
+                    break;
+                case "06":
+                    notiString = parseNoticeShockRejectionCount(subStr);
                     break;
                 case "FF":
                     notiString = "String payload. Not yet supported.";
@@ -1667,6 +1673,51 @@ namespace InoonLoRaParser.Upstream
             return sb.ToString();
         }
 
+        public string parseNoticeShockRejectionCount(string payload)
+        {
+            String subStr = String.Empty;
+            int index = 0;
+            int len = 2;
+            StringBuilder sb = new StringBuilder();
+            
+
+            // Shock Rejection Count (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int srCount = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Shock Rejection Count: {0}", srCount.ToString());
+
+            sb.AppendLine();
+            index += len;
+
+
+
+            // Accumulation Period (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int accPeriod = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Accumulation Period: {0} H", accPeriod.ToString());
+
+            sb.AppendLine();
+            index += len;
+
+
+
+            // Shock Rejection Threshold (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int srthresh = Convert.ToUInt16(subStr, 16);
+            sb.AppendFormat("Shock Rejection Threshold (RMS): {0} mg", srthresh.ToString());
+
+            sb.AppendLine();
+            index += len;
+            
+            
+            return sb.ToString();
+        }
 
         public string parseDataLog(string payload, int version)
         {
