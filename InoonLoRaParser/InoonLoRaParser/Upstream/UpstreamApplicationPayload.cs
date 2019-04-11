@@ -956,6 +956,9 @@ namespace InoonLoRaParser.Upstream
                 case "06":
                     notiString = "Rejection Count";
                     break;
+                case "07":
+                    notiString = "Application Mode Config";
+                    break;
                 case "FF":
                     notiString = "String. Not yet supported.";
                     break;
@@ -1005,6 +1008,9 @@ namespace InoonLoRaParser.Upstream
                     break;
                 case "06":
                     notiString = parseNoticeShockRejectionCount(subStr);
+                    break;
+                case "07":
+                    notiString = parseNoticeApplicationModeConfig(subStr);
                     break;
                 case "FF":
                     notiString = "String payload. Not yet supported.";
@@ -1718,6 +1724,290 @@ namespace InoonLoRaParser.Upstream
             
             return sb.ToString();
         }
+
+        // If inclination check period exceeds INCL_PERIOD_HOUR_BASE minutes, you should follow the rule below 
+        // INCL_PERIOD_HOUR_BASE = 60 minute 
+        // INCL_PERIOD_HOUR_BASE + 1 = 61 = 1H
+        // INCL_PERIOD_HOUR_BASE + 2 = 62 = 2H
+        // INCL_PERIOD_HOUR_BASE + 3 = 63 = 3H
+        private int getInclinationScaledPeriod(int incl_period)
+        {
+            int incl_period_conv = 0;
+            int incl_hour_base = 60;
+            int incl_oneday_base = 60 + 24;
+
+
+            if (incl_period <= incl_hour_base)
+            {
+                incl_period_conv = incl_period;
+            }
+            else if ((incl_hour_base < incl_period) && (incl_period <= incl_oneday_base))
+            {
+                incl_period_conv = (incl_period - incl_hour_base) * 60;
+            }
+            else // ((INCL_PERIOD_HOUR_ONE_DAY < incl_period) && (incl_period < INCL_PERIOD_HOUR_INFINITY))
+            {
+                // MAX 24Hour 
+                incl_period_conv = (incl_oneday_base - incl_hour_base) * 60;  //1440
+            }
+
+            return incl_period_conv;
+
+        }
+
+        public string parseNoticeApplicationModeConfig(string payload)
+        {
+            String subStr = String.Empty;
+            int index = 0;
+            int len = 2;
+            StringBuilder sb = new StringBuilder();
+
+
+            // Application Mode (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int appModeNum = Convert.ToUInt16(subStr, 16);
+
+            sb.Append("Application Mode: "); 
+
+            if (appModeNum == 0)
+                sb.Append("Excavation & Inclination");
+            else if (appModeNum == 1)
+                sb.Append("Machine Runtime Monitoring");
+            else if (appModeNum == 2)
+                sb.Append("Impact Monitoring");
+            else
+                sb.Append("Unknown");
+
+            sb.AppendLine();
+            index += len;
+
+
+            // BMA g range (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int gRangeNum = Convert.ToUInt16(subStr, 16);
+
+            sb.Append("BMA g range: ");
+
+            if (gRangeNum == 1)
+                sb.Append("2g");
+            else if (gRangeNum == 2)
+                sb.Append("4g");
+            else if (gRangeNum == 3)
+                sb.Append("8g");
+            else if (gRangeNum == 4)
+                sb.Append("16g");
+            else
+                sb.Append("Unknown ");
+
+            sb.AppendLine();
+            index += len;
+
+
+            // BMA High g threshold (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int highThresh = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("BMA High g Threshold: {0} mg", highThresh);
+            
+            sb.AppendLine();
+            index += len;
+
+            // nRF Shock Rejection Sub-interval  (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int srSubInterval = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("Excavation Rejection Sub-interval: {0}", srSubInterval);
+
+            sb.AppendLine();
+            index += len;
+
+            // nRF Rejection Threshold (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int srThresh = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("Excavation Rejection Threshold: {0} mg", srThresh);
+
+            sb.AppendLine();
+            index += len;
+
+            // nRF Impact threshold (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int impactThresh = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("nRF Impact Threshold: {0} mg", impactThresh);
+
+            sb.AppendLine();
+            index += len;
+
+
+            // nRF inclination polling period  (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            sb.Append("nRF Inclination Polling Period: ");
+
+            int inclPollingPeriod = Convert.ToUInt16(subStr, 16);
+            
+            if (inclPollingPeriod <= 60)
+            {
+                sb.AppendFormat("{0} minute(s)", inclPollingPeriod);
+            }
+            else if ((60 < inclPollingPeriod) && (inclPollingPeriod <= 60 + 24))
+            {
+                sb.AppendFormat("{0} hour(s)", (inclPollingPeriod - 60) );
+            }
+            else 
+            {
+                sb.AppendFormat("{0} hour(s)", (inclPollingPeriod - (60 + 24)));
+            }
+            
+            sb.AppendLine();
+            index += len;
+
+
+            // Inclination Tx Skip Count  (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int txSkipCount = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("Inclination Tx Skip Count: {0}", txSkipCount);
+
+            sb.AppendLine();
+            index += len;
+
+
+            // Inclination accelerometer value of base angle X (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int baseAccX = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("Inclination Base Acc. X: {0}", baseAccX);
+
+            sb.AppendLine();
+            index += len;
+
+            // Inclination accelerometer value of base angle Y (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int baseAccY = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("Inclination Base Acc. Y: {0}", baseAccY);
+
+            sb.AppendLine();
+            index += len;
+
+
+            // Inclination accelerometer value of base angle X (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int baseAccZ = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("Inclination Base Acc. Z: {0}", baseAccZ);
+
+            sb.AppendLine();
+            index += len;
+
+
+
+            // Reserved  (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int inclReserved = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("Inclination Reserved: {0}", inclReserved);
+
+            sb.AppendLine();
+            index += len;
+
+
+            // Machine Runtime Monitoring State  (1B) 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            int mrtmState = Convert.ToUInt16(subStr, 16);
+            
+            sb.Append("MRTM state: ");
+
+            if (mrtmState == 0)
+                sb.Append("Commissioning state");
+            else if (mrtmState == 1)
+                sb.Append("Inactive state");
+            else if (mrtmState == 2)
+                sb.Append("Active state");
+            else
+                sb.Append("Unknown state");
+
+            sb.AppendLine();
+            index += len;
+
+
+            // MRTM operation threshold  (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int mrtmOperThresh = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("MRTM Operation Threshold: {0} mg", mrtmOperThresh);
+
+            sb.AppendLine();
+            index += len;
+
+
+            // MRTM shock threshold  (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int mrtmShockThresh = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("MRTM Shock Threshold: {0} mg", mrtmShockThresh);
+
+            sb.AppendLine();
+            index += len;
+
+            // MRTM reserved  (2B) 
+            len = 4;
+            subStr = payload.Substring(index, len);
+
+            int mrtmReserved = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("MRTM Reserved: {0}", mrtmReserved);
+
+            sb.AppendLine();
+            index += len;
+
+
+            // Common reserved  (2B) 
+            len = 8;
+            subStr = payload.Substring(index, len);
+
+            int generalReserved = Convert.ToUInt16(subStr, 16);
+
+            sb.AppendFormat("Reserved: {0}", generalReserved);
+
+            sb.AppendLine();
+            index += len;
+
+
+            return sb.ToString();
+        }
+
 
         public string parseDataLog(string payload, int version)
         {
