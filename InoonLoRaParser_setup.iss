@@ -5,7 +5,7 @@
 
 [Setup]
 AppName=InoonLoRaParser
-AppVersion=3.1
+AppVersion=3.2
 DefaultDirName={pf}\InoonLoRaParser
 DefaultGroupName=InoonLoRaParser
 UninstallDisplayIcon={app}\InoonLoRaParser.exe

@@ -644,7 +644,8 @@ namespace InoonLoRaParser.Upstream
                 len = 2;
                 subStr = payload.Substring(index, len);
 
-                SByte accByte = Convert.ToSByte(subStr);
+                //SByte accByte = Convert.ToSByte(subStr);
+                Byte accByte = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
 
 
                 string bitFlag = Convert.ToString(accByte, 2).PadLeft(8, '0'); // 00010001
@@ -1068,7 +1069,8 @@ namespace InoonLoRaParser.Upstream
             len = 2;
             subStr = payload.Substring(index, len);
 
-            SByte accByte = Convert.ToSByte(subStr);
+            //SByte accByte = Convert.ToSByte(subStr);
+            Byte accByte = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
 
             // X Y Z bit 
             string bitFlag = Convert.ToString(accByte, 2).PadLeft(8, '0'); // 00010001
@@ -2100,9 +2102,11 @@ namespace InoonLoRaParser.Upstream
             // Trim whitespace
             payload = payload.Trim();
 
+            /*
             // Axis_Data_Select
             len = 1;
             subStr = payload.Substring(index, len); // 
+
 
             switch (subStr)
             {
@@ -2124,6 +2128,8 @@ namespace InoonLoRaParser.Upstream
             }
 
             sb.AppendFormat("Selected data axis: {0}", payloadStr);
+            
+
             sb.AppendLine();
             index += len;
 
@@ -2134,6 +2140,67 @@ namespace InoonLoRaParser.Upstream
             sb.AppendFormat("Identification: 0x{0}", subStr);
             sb.AppendLine();
             index += len;
+            */
+
+
+
+            // Acceleration Waveform Control Header 
+            len = 2;
+            subStr = payload.Substring(index, len);
+
+            //SByte ctrlByte = Convert.ToSByte(subStr);            
+            Byte ctrlByte = byte.Parse(subStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+
+            string bitFlag = Convert.ToString(ctrlByte, 2).PadLeft(8, '0'); // 
+
+            var chars = bitFlag.ToCharArray();
+
+            
+            // BMA Acceleration g range 
+            sb.Append("Acceleration g range: ");
+
+            if ((chars[0].Equals('0')) && (chars[1].Equals('0')))
+                sb.Append("2g");
+            else if ((chars[0].Equals('0')) && (chars[1].Equals('1')))
+                sb.Append("4g");
+            else if ((chars[0].Equals('1')) && (chars[1].Equals('0')))
+                sb.Append("8g");
+            else //((chars[0].Equals('1')) && (chars[1].Equals('1')))
+                sb.Append("16g");
+
+            // Next line 
+            sb.AppendLine();
+
+
+            // Selected Data Axis 
+            sb.Append("Selected axis: ");
+
+            if ((chars[2].Equals('0')) && (chars[3].Equals('0')))
+                sb.Append("XYZ");
+            else if ((chars[2].Equals('0')) && (chars[3].Equals('1')))
+                sb.Append("X");
+            else if ((chars[2].Equals('1')) && (chars[3].Equals('0')))
+                sb.Append("Y");
+            else //((chars[0].Equals('1')) && (chars[1].Equals('1')))
+                sb.Append("Z");
+
+            // Next line 
+            sb.AppendLine();
+
+
+            // Identification 
+            byte y = 0x0F;
+            int identificationNumber = 1;
+
+            identificationNumber = (int)(ctrlByte & y);
+
+            sb.AppendFormat("Identification : {0}", identificationNumber);
+            sb.AppendLine();
+
+
+            index += len;
+
 
 
             // Data position               
