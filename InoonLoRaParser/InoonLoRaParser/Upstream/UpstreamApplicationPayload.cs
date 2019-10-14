@@ -420,17 +420,65 @@ namespace InoonLoRaParser.Upstream
                 len = 2;
                 subStr = payload.Substring(index, len);
                 int accIntrNum = Convert.ToInt16(subStr, 16);
-                sb.AppendFormat("Acc Interrupt No: {0} ", accIntrNum);
+
+                //sb.AppendFormat("Acc Interrupt No: {0} ", accIntrNum);
+
+                if (1 == accIntrNum)
+                    sb.Append("Acc Interrupt source: High-g interrupt");
+                else if (2 == accIntrNum)
+                    sb.Append("Acc Interrupt source: Slope detection interrupt");
+                else
+                    sb.AppendFormat("Acc Interrupt source: Unknown {0} ", accIntrNum);
+
+
                 sb.AppendLine();
                 index += len;
 
                 // Skip reserved field 
+                //len = 2;
+                //index += len;
+
+                // jychoi 20191014 BMA sleep duration 
                 len = 2;
+                subStr = payload.Substring(index, len);
+                int sleepDur = Convert.ToInt16(subStr, 16);
+                sb.Append("BMA sleep duration: ");
+
+                if (0 == sleepDur)
+                    sb.Append("10 ms");
+                else if (6 > sleepDur)
+                    sb.Append("0.5 ms");
+                else if (6 == sleepDur)
+                    sb.Append("1 ms");
+                else if (7 == sleepDur)
+                    sb.Append("2 ms");
+                else if (8 == sleepDur)
+                    sb.Append("4 ms");
+                else if (9 == sleepDur)
+                    sb.Append("6 ms");
+                else if (10 == sleepDur)
+                    sb.Append("10 ms");
+                else if (11 == sleepDur)
+                    sb.Append("25 ms");
+                else if (12 == sleepDur)
+                    sb.Append("50 ms");
+                else if (13 == sleepDur)
+                    sb.Append("100 ms");
+                else if (14 == sleepDur)
+                    sb.Append("500 ms");
+                else if (15 == sleepDur)
+                    sb.Append("1 sec");
+                else
+                    sb.AppendFormat("Unknown {0} ", sleepDur);
+
+
+                sb.AppendLine();
                 index += len;
+
 
                 // Acc Interrupt :  Data field 
                 len = 2;
-                sb.Append("Acc Interrupt enabled axis : ");
+                sb.Append("High-g Interrupt enabled axis : ");
                 subStr = payload.Substring(index, len);
 
                 //SByte accByte = Convert.ToSByte(subStr);
@@ -496,15 +544,24 @@ namespace InoonLoRaParser.Upstream
 
                 if (installStatus == 0)
                 {
-                    sb.Append("Uninstalled ");
+                    sb.Append("Uninstall state");
+                }
+                else if (installStatus == 1)
+                {
+                    sb.Append("Install state");
+                }
+                else if (installStatus == 2)
+                {
+                    sb.Append("PrepareInstall state");
                 }
                 else
                 {
-                    sb.Append("Installed ");
+                    sb.Append("Unknown setup state");
                 }
 
                 sb.AppendLine();
                 index += len;
+
 
 
                 // FW Version 
@@ -683,25 +740,7 @@ namespace InoonLoRaParser.Upstream
                         eventString = "High-G";
                         break;
                     case "02":
-                        eventString = "Tap";
-                        break;
-                    case "03":
-                        eventString = "Double tap";
-                        break;
-                    case "04":
-                        eventString = "Orient";
-                        break;
-                    case "05":
-                        eventString = "Flip";
-                        break;
-                    case "06":
-                        eventString = "Flat";
-                        break;
-                    case "07":
-                        eventString = "Low-G";
-                        break;
-                    case "08":
-                        eventString = "Collapse"; //jychoi 
+                        eventString = "Slope detection";
                         break;
                     default:
                         eventString = "Unknown event";
@@ -713,13 +752,13 @@ namespace InoonLoRaParser.Upstream
                 sb.AppendLine();
                 index += len;
 
-                if (eventString.Equals("High-G") || eventString.Equals("Collapse"))
+                if (eventString.Equals("High-G") || eventString.Equals("Slope detection"))
                 {
                     // X axis 
                     len = 2;
                     subStr = payload.Substring(index, len);
                     int xnum = Convert.ToInt16(subStr, 16);
-                    sb.AppendFormat("Number of X axis interrupts: {0} ", xnum.ToString());
+                    sb.AppendFormat("Interrupt counts X : {0} ", xnum.ToString());
                     sb.AppendLine();
                     index += len;
 
@@ -728,7 +767,7 @@ namespace InoonLoRaParser.Upstream
                     len = 2;
                     subStr = payload.Substring(index, len);
                     int ynum = Convert.ToInt16(subStr, 16);
-                    sb.AppendFormat("Number of Y axis interrupts: {0} ", ynum.ToString());
+                    sb.AppendFormat("Interrupt counts Y: {0} ", ynum.ToString());
                     sb.AppendLine();
                     index += len;
 
@@ -736,7 +775,7 @@ namespace InoonLoRaParser.Upstream
                     len = 2;
                     subStr = payload.Substring(index, len);
                     int znum = Convert.ToInt16(subStr, 16);
-                    sb.AppendFormat("Number of Z axis interrupts: {0} ", znum.ToString());
+                    sb.AppendFormat("Interrupt counts Z: {0} ", znum.ToString());
                     sb.AppendLine();
                     index += len;
 
@@ -832,6 +871,14 @@ namespace InoonLoRaParser.Upstream
                 case "0c":
                 case "0C":
                     eventString = "LoraErrorBeaconStartFail";
+                    break;
+                case "0d":
+                case "0D":
+                    eventString = "LoraErrorCheckFWFail";
+                    break;
+                case "0e":
+                case "0E":
+                    eventString = "LoraErrorAccelerometerFail";
                     break;
                 default:
                     eventString = "LoraErrorUnknown";
@@ -1327,6 +1374,19 @@ namespace InoonLoRaParser.Upstream
                     case "94":
                         sb.Append("PowerOffResetAliveFailed (전원 리셋): Alive msg transmission is failed for 2 times");
                         break;
+                    case "95":
+                        sb.Append("PowerOffResetChangedToImpactMode (전원 리셋): Impact Monitoring mode 로 바뀌어 reset");
+                        break;
+                    case "96":
+                        sb.Append("PowerOffResetChangedToExcvInclMode (전원 리셋): Excavation_Inclination Monitoring mode 로 바뀌어 reset");
+                        break;
+                    case "97":
+                        sb.Append("PowerOffResetChangedToMrtmMode (전원 리셋): Machine Runtime Monitoring mode 로 바뀌어 reset");
+                        break;
+                    case "98":
+                        sb.Append("PowerOffResetBootCompleteRemained (전원 리셋): BootComplete state에 10초이상 머물러 있을 경우 리셋");
+                        break;
+
                     default:
                         sb.Append("Unknown power off reason");
                         break;
@@ -2203,7 +2263,8 @@ namespace InoonLoRaParser.Upstream
 
 
 
-            // Data position               
+            // Data position      
+            /*
             len = 2;
             subStr = payload.Substring(index, len);
 
@@ -2225,8 +2286,81 @@ namespace InoonLoRaParser.Upstream
             sb.Append(payloadStr);
             sb.AppendLine();
             index += len;
+            */
 
-            // no contents
+
+
+            // Packing type : 12bit or 16bit              
+            len = 1;
+            subStr = payload.Substring(index, len);
+
+            sb.Append("Packing type: ");
+
+            switch (subStr)
+            {
+                case "1":
+                    payloadStr = "12bit packed";
+                    break;
+                case "0":
+                case "F":
+                case "f":
+                    payloadStr = "16bit aligned";
+                    break;
+                default:
+                    payloadStr = "Unknown alignment 0x" + subStr;
+                    break;
+            }
+
+
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+
+            // Data position               
+            len = 1;
+            subStr = payload.Substring(index, len);
+
+            switch (subStr)
+            {
+                case "0":
+                    payloadStr = "Start";
+                    break;
+                case "F":
+                case "f":
+                    payloadStr = "Finish";
+                    break;
+                default:
+                    payloadStr = "Intermediate 0x" + subStr;
+                    break;
+            }
+
+
+            sb.Append(payloadStr);
+            sb.AppendLine();
+            index += len;
+
+
+
+            // Show Accel Waveform data    
+            
+            if (index + 96 > payload.Length)
+                len = 72;  // AS923. 36Byte 
+            else
+                len = 96; // SKTelecom 48Byte 
+
+            sb.Append("Acc data: ");
+
+            for (int i = 0; i < len; i += 2)
+            {
+                subStr = payload.Substring(index, 2);
+                index += 2;
+                sb.AppendFormat("0x{0}, ", subStr);
+            }
+
+            sb.AppendLine();
+            index += len;
+
             // no RSSI
 
 
