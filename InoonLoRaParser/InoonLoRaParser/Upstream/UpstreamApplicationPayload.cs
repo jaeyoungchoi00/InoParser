@@ -880,6 +880,10 @@ namespace InoonLoRaParser.Upstream
                 case "0E":
                     eventString = "LoraErrorAccelerometerFail";
                     break;
+                case "0f":
+                case "0F":
+                    eventString = "LoraErrorUnexpectedSystemMode";
+                    break;
                 default:
                     eventString = "LoraErrorUnknown";
                     break;
@@ -1384,7 +1388,7 @@ namespace InoonLoRaParser.Upstream
                         sb.Append("PowerOffResetChangedToMrtmMode (전원 리셋): Machine Runtime Monitoring mode 로 바뀌어 reset");
                         break;
                     case "98":
-                        sb.Append("PowerOffResetBootCompleteRemained (전원 리셋): BootComplete state에 10초이상 머물러 있을 경우 리셋");
+                        sb.Append("PowerOffResetBootCompleteRemained (전원 리셋): BootComplete state에 16초이상 머물러 있을 경우 리셋");
                         break;
 
                     default:
